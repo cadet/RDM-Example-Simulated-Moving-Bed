@@ -3,50 +3,45 @@
 # # Simulated Moving Bed
 
 # %% [markdown]
-# The following example is a reproduction of part of the research results published in "Efficient numerical simulation of simulated moving bed chromatography with a single-column solver" (Qiao-Le He, Samuel Leweke, Eric von Lieres, Computers & Chemical Engineering 2018;111:183-198. doi:10.1016/j.compchemeng.2017.12.022.) <br>
+# The following example is a reproduction of part of the research results published in "Efficient numerical simulation of simulated moving bed chromatography with a single-column solver" (Qiao-Le He, Samuel Leweke, Eric von Lieres, Computers & Chemical Engineering 2018; 111:183-198. doi:10.1016/j.compchemeng.2017.12.022.) <br>
 # https://www.sciencedirect.com/science/article/pii/S0098135417304520
 #
 
 # %% [markdown]
-# The first case study depicted in the paper evaluates the separation of fructose `A` and glucose `B` in a four-zone simulated moving bed (SMB) with eight columns. The binding behavior follows a linear isotherm.  
+# The first case study depicted in the paper evaluates the separation of the two components fructose `A` and glucose `B` in a four-zone simulated moving bed (SMB) system with eight columns. The binding behavior follows a linear isotherm.  
+#
+# In addition to the columns a SMB system contains four different external units connected to the columns:
+# 1. Feed: component mixture
+# 2. Raffinate: faster eluting component (elutes before feed plug flow)
+# 3. Extract: slower eluting component (elutes after feed plug flow), interacts more strongly with the column solid phase
+# 4. Desorbant (Eluent): Solution to elute extract from column before raffinate plug flow enters the column again to prevent mixing of the separated components
 #
 #
-# SMB:
-# contains 4 different external units, connected to the column by valves:
-# 1. Feed: mixture A+B
-# 2. Raffinate: faster/more easily eluting component (elutes before feed)
-# 3. Extract: slower elution component (elutes after feed input), interacts more strongly with the column solid phase
-# 4. Desorbant: Solution to eluate Extract from column before Raffinate plug flow enters the column again. -> want to have an empty column to prevent Mixing of the separated components
-#
-# `w_e` defines the volume flow percentile with which the fluid leaves a particular `zone` and enters another.
-
-# %% [markdown]
-# As seen in the  Four-zone SMB schemes with eight (right) columns indicating positions of the associated hold-up volumes (Fig.5, He et al.) Hold up-volumes between all columns and external valves exist and should may be evaluated in thier effect on the SMB elution.
-#
-# Linear Isotherm:     {\displaystyle q=K_{\text{H}}\cdot C_{\text{eq}}}
-#
-#     q – Beladung des Sorbents (Masse Sorbat bezogen auf Masse Sorbent)
-#     KH – Henry-Koeffizient
-#     Ceq – Konzentration des Sorbats in Lösung
 
 # %% [markdown]
 # ```{figure} ./figures/case_study1_practical_setup.jpg
-# ## Four-zone SMB schemes with eight (right) columns indicating positions of the associated hold-up volumes (Fig.5, He et al.)](src/figures/case_study1_practical_setup.jpg)
+# :width: 600px
+# <div style="text-align: center">
+# (Fig. 5, He et al.) Four-zone SMB schemes with eight columns indicating positions of the associated hold-up volumes
+# <div>
 
 # %% [markdown]
-# `eluent`= desorbant 
+# As seen in Fig. 5, hold up-volumes between all columns and external units exist and should optimally be considered in thier effect on the SMB elution.
+
+# %% [markdown]
+# At first the physical properties of the columns and the Inlet are defined. All numerical values are taken from Table 1.(4. Case Studies). The Henry coefficient can be assumed to equal the equilibrium constant under ideal, linear conditions. 
 
 # %%
 from CADETProcess.processModel import ComponentSystem
 from CADETProcess.processModel import Linear
-from CADETProcess.processModel import Inlet, LumpedRateModelWithPores
+from CADETProcess.processModel import Inlet, Outlet, LumpedRateModelWithPores
 
 # Component System
 component_system = ComponentSystem(['A', 'B'])
 
 # Binding Model
 binding_model = Linear(component_system)
-binding_model.is_kinetic = False
+binding_model.is_kinetic = True
 binding_model.adsorption_rate = [0.54, 0.28]  # Henry_1 = 	0.54; Henry_2 = 0.28
 binding_model.desorption_rate = [1, 1]
  
@@ -74,59 +69,106 @@ feed.c = [2.78e3, 2.78e3]  # c_in [mol / m^3]
 feed.flow_rate = 2.0e-8  # Q_F [m^3 / s]
 
 # %% [markdown]
-# Henry coefficient can be assumed to equal the equilibrium constant under ideal, linear conditions. The percentile of the volume flow that leaves zone I for [extract, zone II] can be deducted by examining the differences in the volumetric flow rate as all columns have the same physical properties. 
-# -> A_1 * v_1 = A_2 * v_2
-# von zone I in Extract (A? v = Q_E) und zone II (A = column.cross..., v = Q_II)
+# The unit system of the SMB is implemented using the `CarouselBuilder` from CADETProcess. Four zones with two columns in each zone and the connections to their respective external units are implemented as seen in Fig. 5. For more information please refer: [here](https://cadet-process.readthedocs.io/en/stable/user_guide/tools/carousel_builder.html#). (Not using SMB builder because `n_columns` = 2) <br>
+# The percentile of the volume flow that leaves `zone_I` for `extract`(`w_e`) or `zone_II` (`1-w_e`) can be deducted by examining the differences in the volumetric flow rate as all columns have the same cross section `A`(Table 1.). The same can be done for the percentile of the volume flow that leaves `zone_III` for `raffinate`(`w_r`) and `zone_IV` (`1-w_r`) <br>
+# The continuity equation for laminar flow is assumed:
+# `A_1 * v_1 = A_2 * v_2`
 # ```
-# 1.4e-7 * 5.31e-4 = (3.48e-8 * A_extract + 1.05e-7 * 5.31e-4 ) 
-# 1.4e-7 = (3.48e-8 * (A_extract / A) + 1.05e-7)
-# A_extract = (1.4e-7  - 1.05e-7 ) / (3.48e-8 / A) = 5.34e-4
-# 1.4e-7 = (3.48e-8 * 1.006 + 1.05e-7)
-# 100 * (3.48e-8 * 1.006) / (1.4e-7) = 25% für Extrakt
+# zone_I -> extract + zone_II
+# Q_I * A = Q_E * A_extract + Q_II * A
+# 1.4e-7 * 5.31e-4 = 3.48e-8 * A_extract + 1.05e-7 * 5.31e-4 
+# A_extract = (1.4e-7  - 1.05e-7 ) / (3.48e-8 / 5.31e-4) = 5.34e-4
+# A_extract / A = 1.006
+# w_e = (Q_E * (A_extract / A)) / Q_I 
+# w_e = (3.48e-8 * 1.006) / (1.4e-7) = 0.25
 #
-# zoneIII = Raff + zone IV
-# 1.25e-7 * 5.31e-4 = (2.66e-8 * A_raff + 9.81e-8 * 5.31e-4 ) 
-# 1.25e-7 = (2.66e-8 * (A_raff / A) + 9.81e-8)
-# A_raff = (1.25e-7  -  9.81e-8) / (2.66e-8 / 5.31e-4) = 5.37e-4
-# 1.25e-7 = (2.66e-8 * 1.011 +  9.81e-8)
-# 100 * (2.66e-8 * 1.011) / (9.81e-8) = 27.4% für Raffinate
-# ```
-# -> kann einfach Q vergleichen, der Rest der Gleichung wird durch die andere Fläche des Extrakts gestellt 
-# interstitial velocities berechnet CADET selbst aus Q / A * porosity
+# zoneIII -> raffinate + zone_IV
+# Q_III * A = Q_R * A_raffinate + Q_IV * A
+# 1.25e-7 * 5.31e-4 = 2.66e-8 * A_raffinate + 9.81e-8 * 5.31e-4
+# A_raffinate = (1.25e-7 - 9.81e-8) / (2.66e-8 / 5.31e-4) = 5.37e-4
+# A_raffinate / A = 1.011
+# w_r = (Q_R * (A_raffinate / A)) / Q_III 
+# w_r = (2.66e-8 * 1.011) / (1.25e-7) = 0.215
+# ``` 
 
 # %%
-(1.25e-7  -  9.81e-8) / (2.66e-8 / 5.31e-4) / 5.31e-4
+extract = Outlet(component_system, name='extract')
+raffinate = Outlet(component_system, name='raffinate')
+from CADETProcess.modelBuilder import SerialZone, ParallelZone
 
-100 * (2.66e-8 * 1.011) / (9.81e-8)
+zone_I = SerialZone(component_system, 'zone_I', n_columns = 2)
+zone_II = SerialZone(component_system, 'zone_II', n_columns = 2)
+zone_III = SerialZone(component_system, 'zone_III', n_columns = 2)
+zone_IV = SerialZone(component_system, 'zone_IV', n_columns = 2)
 
+from CADETProcess.modelBuilder import CarouselBuilder
+
+builder = CarouselBuilder(component_system, 'smb')
+builder.column = column
+builder.add_unit(eluent)
+builder.add_unit(feed)
+
+builder.add_unit(extract)
+builder.add_unit(raffinate)
+
+builder.add_unit(zone_I)
+builder.add_unit(zone_II)
+builder.add_unit(zone_III)
+builder.add_unit(zone_IV)
+
+builder.add_connection(eluent, zone_I)
+
+builder.add_connection(zone_I, extract)
+builder.add_connection(zone_I, zone_II)
+w_e = 0.25
+builder.set_output_state(zone_I, [w_e, 1-w_e])
+
+builder.add_connection(zone_II, zone_III)
+
+builder.add_connection(feed, zone_III)
+
+builder.add_connection(zone_III, raffinate)
+builder.add_connection(zone_III, zone_IV)
+w_r = 0.215
+builder.set_output_state(zone_III, [w_r, 1-w_r])
+
+builder.add_connection(zone_IV, zone_I)
+
+builder.switch_time = 1552
+
+process = builder.build_process()
 
 # %%
-from CADETProcess.modelBuilder import SMBBuilder
+#from CADETProcess.modelBuilder import SMBBuilder
 
-smb_builder = SMBBuilder(feed, eluent, column)
-smb_builder.switch_time = 1552
+#smb_builder = SMBBuilder(feed, eluent, column)
+#smb_builder.switch_time = 1552
 
 #builder.add_connection(zone_I, extract)
 #builder.add_connection(zone_I, zone_II)
-w_e = 0.25
-smb_builder.set_output_state('zone_I', [w_e, 1-w_e])
+#w_e = 0.25
+#smb_builder.set_output_state('zone_I', [w_e, 1-w_e])
 
 #builder.add_connection(zone_III, raffinate)
 #builder.add_connection(zone_III, zone_IV)
-w_r = 0.274
-smb_builder.set_output_state('zone_III', [w_r, 1-w_r])
-process = smb_builder.build_process()
+#w_r = 0.274
+#smb_builder.set_output_state('zone_III', [w_r, 1-w_r])
+#process = smb_builder.build_process()
 
 # %%
-process = smb_builder.build_process()
+#process = smb_builder.build_process()
 
 from CADETProcess.simulator import Cadet
 process_simulator = Cadet()
+#process_simulator.evaluate_stationarity = True
 process_simulator.n_cycles = 1
-
+#process_simulator.timeout = 15*60
+#simulate first 8 switch times (1 iteration), conc bis 1mol
 simulation_results = process_simulator.simulate(process)
 
-_ = simulation_results.solution.raffinate.inlet.plot()
-_ = simulation_results.solution.extract.inlet.plot()
+_ = simulation_results.solution.raffinate.inlet.plot(start = 0, end = 8 * builder.switch_time)
+_ = simulation_results.solution.extract.inlet.plot(start = 0, end = 8 * builder.switch_time)
+#lief für 75min ohne ergebnis :C
 
-# %%
+# %% [markdown]
+# ((CSS - cyclic steady state: dynamic trajectory is repeated after every switch => all columns have same state after specific time laps ))
