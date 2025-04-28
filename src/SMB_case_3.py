@@ -1,3 +1,14 @@
+# %% [markdown]
+# (Example_3_SMB)=
+# # Ternary separation
+
+# %% [markdown]
+# ```{figure} ./figures/case_study3.jpg
+# :width: 600px
+# <div style="text-align: center">
+# (Fig. 4, He et al.) Integrated five-zone SMB scheme with two extract ports
+# <div>
+
 # %%
 from CADETProcess.processModel import ComponentSystem
 from CADETProcess.processModel import Linear

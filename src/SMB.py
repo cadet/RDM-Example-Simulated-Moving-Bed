@@ -19,6 +19,10 @@
 #
 
 # %% [markdown]
+# A continuous process can be approximated by periodically switching the inlet and outlet valves of the columns in the system ("column switching"). The position of each column relative to these external units determine their specific "Zone" in the SMB system. Based on thier external units, every zone has a different function in the seperation process and a different flow rate within the columns. 
+#
+
+# %% [markdown]
 # ```{figure} ./figures/case_study1_practical_setup.jpg
 # :width: 600px
 # <div style="text-align: center">
@@ -26,10 +30,10 @@
 # <div>
 
 # %% [markdown]
-# As seen in Fig. 5, hold up-volumes between all columns and external units exist and should optimally be considered in thier effect on the SMB elution.
+# As seen in Fig. 5, hold up-volumes between all columns and external units exist and should ideally be considered in thier effect on the SMB elution. (triangle theory)
 
 # %% [markdown]
-# At first the physical properties of the columns and the Inlet are defined. All numerical values are taken from Table 1.(4. Case Studies). The Henry coefficient can be assumed to equal the equilibrium constant under ideal, linear conditions. 
+# To simulate the SMB process, first the physical properties of the columns and the Inlet are defined. All numerical values are taken from Table 1.(4. Case Studies). The Henry coefficient can be assumed to equal the equilibrium constant under ideal, linear conditions. 
 
 # %%
 from CADETProcess.processModel import ComponentSystem
