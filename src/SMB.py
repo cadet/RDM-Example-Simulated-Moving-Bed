@@ -187,3 +187,22 @@ _ = simulation_results.solution.extract.inlet.plot(start = 0, end = 8 * builder.
 
 # %% [markdown]
 # ((CSS - cyclic steady state: dynamic trajectory is repeated after every switch => all columns have same state after specific time laps ))
+
+# %%
+raff = simulation_results.solution.raffinate.inlet.solution
+ext = simulation_results.solution.extract.inlet.solution
+t = simulation_results.time_complete
+
+# %%
+import matplotlib.pyplot as plt
+import numpy as np
+
+plt.plot(t, ext*np.pi*0.536*(2.6e-2/2)**2)
+plt.ylim(0,1)
+
+# %%
+plt.plot(t, raff*np.pi*0.536*(2.6e-2/2)**2)
+plt.ylim(0,1)
+
+
+# %%
