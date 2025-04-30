@@ -38,7 +38,7 @@
 # %%
 from CADETProcess.processModel import ComponentSystem
 from CADETProcess.processModel import Linear
-from CADETProcess.processModel import Inlet, Outlet, LumpedRateModelWithPores
+from CADETProcess.processModel import Inlet, Outlet, GeneralRateModel
 
 # Component System
 component_system = ComponentSystem(['A', 'B'])
@@ -51,7 +51,7 @@ binding_model.desorption_rate = [1, 1]
  
 
 # Column
-column = LumpedRateModelWithPores(component_system, name='column')
+column = GeneralRateModel(component_system, name='column')
 column.binding_model = binding_model
 
 column.length = 0.536  # L [m]
@@ -61,8 +61,10 @@ column.bed_porosity = 0.38  # ε_c [-]
 column.particle_porosity = 1.0e-5  # ε_p [-] 
 column.particle_radius = 1.63e-3  # r_p [m]
 column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]
-#column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
+column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
 column.axial_dispersion = 3.81e-6  # D_ax [m² / s]
+column.discretization.npar = 1
+column.discretization.ncol = 40
 
 eluent = Inlet(component_system, name='eluent')
 eluent.c = [0, 0]  # c_in_D [mol / m^3]
@@ -71,6 +73,9 @@ eluent.flow_rate = 4.14e-8  # Q_D [m^3 / s]
 feed = Inlet(component_system, name='feed')
 feed.c = [2.78e3, 2.78e3]  # c_in [mol / m^3]
 feed.flow_rate = 2.0e-8  # Q_F [m^3 / s]
+
+
+
 
 # %% [markdown]
 # The unit system of the SMB is implemented using the `CarouselBuilder` from CADETProcess. Four zones with two columns in each zone and the connections to their respective external units are implemented as seen in Fig. 5. For more information please refer: [here](https://cadet-process.readthedocs.io/en/stable/user_guide/tools/carousel_builder.html#). (Not using SMB builder because `n_columns` = 2) <br>
@@ -168,6 +173,12 @@ process_simulator = Cadet()
 process_simulator.n_cycles = 1
 #process_simulator.timeout = 15*60
 #simulate first 8 switch times (1 iteration), conc bis 1mol
+
+process_simulator.time_integrator_parameters.abstol = 1e-10
+process_simulator.time_integrator_parameters.reltol = 1e-6
+process_simulator.time_integrator_parameters.init_step_size = 1e-14
+process_simulator.time_integrator_parameters.max_step_size = 5e6
+
 simulation_results = process_simulator.simulate(process)
 
 _ = simulation_results.solution.raffinate.inlet.plot(start = 0, end = 8 * builder.switch_time)
@@ -176,3 +187,22 @@ _ = simulation_results.solution.extract.inlet.plot(start = 0, end = 8 * builder.
 
 # %% [markdown]
 # ((CSS - cyclic steady state: dynamic trajectory is repeated after every switch => all columns have same state after specific time laps ))
+
+# %%
+raff = simulation_results.solution.raffinate.inlet.solution
+ext = simulation_results.solution.extract.inlet.solution
+t = simulation_results.time_complete
+
+# %%
+import matplotlib.pyplot as plt
+import numpy as np
+
+plt.plot(t, ext*np.pi*0.536*(2.6e-2/2)**2)
+plt.ylim(0,1)
+
+# %%
+plt.plot(t, raff*np.pi*0.536*(2.6e-2/2)**2)
+plt.ylim(0,1)
+
+
+# %%
