@@ -6,6 +6,8 @@
   "cadet_rdm_version": "0.1.5",
   "output_remotes": {
     "output_folder_name": "output",
-    "output_remotes": {}
+    "output_remotes": {
+      "origin": "git@github.com:katharinapaul2403/RDM-Example-Simulated-Moving-Bed-Output.git"
+    }
   }
 }

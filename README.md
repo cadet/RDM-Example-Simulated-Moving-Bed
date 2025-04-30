@@ -10,4 +10,4 @@ Please update the environment.yml with your python environment requirements.
 
 
 The output repository can be found at:
-[output_repo]() (not actually set yet because no remote has been configured at this moment
+[output_repo](https://github.com/katharinapaul2403/RDM-Example-Simulated-Moving-Bed-Output)
