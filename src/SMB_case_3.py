@@ -12,7 +12,7 @@
 # %%
 from CADETProcess.processModel import ComponentSystem
 from CADETProcess.processModel import Linear
-from CADETProcess.processModel import Inlet, Outlet, LumpedRateModelWithPores
+from CADETProcess.processModel import Inlet, Outlet, GeneralRateModel
 
 # Component System
 component_system = ComponentSystem(['A', 'B', 'C'])
@@ -24,7 +24,7 @@ binding_model.adsorption_rate = [3.15, 7.40, 23.0]  # Henry_1 = 3.15; Henry_2 = 
 binding_model.desorption_rate = [1, 1, 1]
 
 # Column
-column = LumpedRateModelWithPores(component_system, name='column')
+column = GeneralRateModel(component_system, name='column')
 column.binding_model = binding_model
 
 column.length = 0.150 # L [m]
@@ -34,7 +34,7 @@ column.bed_porosity = 0.80  # ε_c [-]
 column.particle_porosity = 1.0e-5  # ε_p [-] 
 column.particle_radius = 1.50e-5  # r_p [m]
 column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]  -> sehr hoch, beispiel war * 1e-5
-#column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
+column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
 column.axial_dispersion = 3.81e-10  # D_ax [m² / s]
 
 eluent = Inlet(component_system, name='eluent')
@@ -147,9 +147,9 @@ process_simulator.n_cycles = 1  # lässt die conc. ordinate von e-14 auf e-8 ste
 # cycle_time = self.n_columns * self.switch_time
 simulation_results = process_simulator.simulate(process)
 
-_ = simulation_results.solution.raffinate.inlet.plot(start = 0, end = 8 * builder.switch_time)
-_ = simulation_results.solution.extract_1.inlet.plot(start = 0, end = 8 * builder.switch_time)
-_ = simulation_results.solution.extract_2.inlet.plot(start = 0, end = 8 * builder.switch_time)
+_ = simulation_results.solution.raffinate.inlet.plot()
+_ = simulation_results.solution.extract_1.inlet.plot()
+_ = simulation_results.solution.extract_2.inlet.plot()
 #_ = simulation_results.sensitivity['column.axial_dispersion'].column.outlet.plot()
 simulation_results.time_elapsed()
 
