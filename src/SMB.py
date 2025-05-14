@@ -242,7 +242,7 @@ process_simulator.time_integrator_parameters.init_step_size = 1e-14
 process_simulator.time_integrator_parameters.max_step_size = 5e6
 
 simulation_results = process_simulator.simulate(process)
-
+#QUATSCH! mit dem cycle+1
 cycle = 6
 _ = simulation_results.solution.raffinate.inlet.plot(start = cycle * 0, end = (cycle+1) * 8 * builder.switch_time)
 _ = simulation_results.solution.extract.inlet.plot(start = 0, end = 8 * builder.switch_time)
@@ -265,3 +265,5 @@ axial_conc.axial_coordinates
 axial_conc.time
 simulation_results.solution
 axial_conc.plot_at_time(t = 74496.0)
+
+# %%
