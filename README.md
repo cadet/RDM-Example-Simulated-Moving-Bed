@@ -16,6 +16,7 @@ This example reproduces part of the case study from:
 * Katharina Paul
 * Ronald Jäpel
 * Hannah Lanzrath
+* Johannes Schmölder
 
 ---
 
