@@ -1,6 +1,6 @@
 # Simulated Moving Bed Simulation with CADET
 
-This repository contains example simulations of Simulated Moving Bed (SMB) processes using **CADET-Process** and **CADET-RDM**. A four-zone SMB system with eight columns and a five-zone SMB system with five columns is examined.
+This repository contains example simulations of **Simulated Moving Bed (SMB)** processes using **CADET-Process** and **CADET-RDM**. A four-zone SMB system with eight columns and a five-zone SMB system with five columns are examined. A **linear binding model** and an Equilibrium-Dispersive Model (EDM) are used to simulate binary and ternary separations. The EDM is solved by adapting the **General Rate Model (GRM)**.
 
 This example reproduces part of the case study from:
 
@@ -56,4 +56,4 @@ The results will be stored in the `src` folder inside the `output` directory.
 ## Output Repository
 
 The output data for this case study can be found here:
-[https://github.com/cadet/RDM-Example-Simulated-Moving-Bed-Output](https://github.com/cadet/RDM-Example-Simulated-Moving-Bed-Output)
+[Link to Output Repository](https://github.com/cadet/RDM-Example-Simulated-Moving-Bed-Output)
