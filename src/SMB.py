@@ -51,6 +51,97 @@
 # %% [markdown]
 # To simulate the SMB process, first the physical properties of the columns and the Inlet are defined. The mass transfer within the column is characterized by the equilibrium-dispersive model (EDM) which can be derived from the `GeneralRateModel` by defining the spatial discretization `column.discretization.npar` as 1. In the finite volume method, only one radial cell is assumed. The axial column dimension `column.discretization.ncol` is set to 40 axial cells. All numerical values are taken from Table 1.(4. Case Studies). The Henry coefficient can be assumed to equal the equilibrium constant under ideal, linear conditions. 
 
+# %% [markdown]
+# # Differences in He's Matlab code / He's paper / original case study in [Klatt's paper](https://www.sciencedirect.com/science/article/pii/S0959152401000051?ref=pdf_download&fr=RR-2&rr=94b07706292368ec#TBL1):
+#
+# ## Parameters from Matlab code not in CarouselBuilder Example:
+#
+#         % The parameter setting for simulator
+#         opt.tolIter         = 1e-3;
+#
+#         % The parameter settting for the SMB
+#         opt.Purity_limit    = [0.99, 0.99];
+#         opt.Penalty_factor  = 10;
+#
+#         % opt.compTargID = [2, 1];
+#         opt.structID    = [2 2 2 2];
+#         opt.diffusionParticleSurface  = [0.0 0.0];  # probably automatically 0 if not defined
+#         opt.enableDebug = true;
+#
+#         % The parameter setting for simulator
+#         opt.nMaxIter        = 1000;
+#         opt.nThreads        = 4;
+#         opt.timePoints      = 1000;
+#
+#         opt.yLim            = max(concentrationFeed ./ opt.molMass);
+#         
+#         (Viscosity in Klatt paper, not in He paper)
+#
+# ## Interstitial velocities missing (Calculation already checked for all flow rates Q): 
+#         Interstitial velocities calculated explicitly in Matlab code, done automatically by CarouselBuilder?
+#         
+#         % Interstitial velocity = flow_rate / (across_area * opt.porosityColumn)
+#         interstVelocity.recycle   = flowRate.recycle / (crossArea*opt.porosityColumn);      % m/s
+#         interstVelocity.feed      = flowRate.feed / (crossArea*opt.porosityColumn);         % m/s
+#         interstVelocity.raffinate = flowRate.raffinate / (crossArea*opt.porosityColumn);    % m/s
+#         interstVelocity.desorbent = flowRate.desorbent / (crossArea*opt.porosityColumn);    % m/s
+#         interstVelocity.extract   = flowRate.extract / (crossArea*opt.porosityColumn);      % m/s
+#
+#
+#         process_simulator.time_integrator_parameters.reltol = 1e-6  # Not in Matlab code, not in Klatt paper, but in He paper
+#         
+
+# %% [markdown]
+# ##  Matlab code capable of placing a CSTR or DPFR apparatues before and after the calculated column:
+#
+# %   Continuous Stirred Tank Reactor
+#     opt.enable_CSTR = false;
+#     opt.CSTR_length = 0.01;
+#
+# %   Dispersive Plug Flow Reactor
+#     opt.enable_DPFR = false;
+#
+#     opt.DPFR_length = 0.0066;
+#     opt.DPFR_nCells = 50;
+#
+#     opt.DPFR_velocity   = 0.00315;
+#     opt.DPFR_dispersion = 2.5e-20;
+#
+#
+# ## Differences in parameters:
+#     
+#     1.)  He paper: "The inlet concentrations are converted from 0.55 g/cm^3 assuming that fructose and glucose have the same molar mass of 180 g/mol." 
+#     => Would be: (0.55/180)*1e6 = 3055.555 = 3.06e3 mol/m^3
+#     
+#     Text does not match table in paper
+#     
+#     # He paper Table 1: 2.78e3 
+#     # original Klatt paper:  "cF = 0.5 g/cm3" => would also be 2.78e3
+#
+#     Matlab code: 
+#         concentrationFeed 	= [0.5, 0.5];   % g/m^3 [concentration_compA, concentration_compB]   => wrong unit, is actually g/cm^3
+#         opt.molMass         = [180.16, 180.16];
+#         opt.yLim            = max(concentrationFeed ./ opt.molMass);
+#
+#         Feed.time = linspace(0, opt.switch, opt.timePoints);
+#         Feed.concentration = zeros(length(Feed.time), opt.nComponents);  
+#     
+#     2.) Film diffusion and particle diffusion exchanged in He's paper and Matlab code
+#     Matlab code: opt.filmDiffusion             = [5e-5 5e-5];
+#     Matlab code: opt.diffusionParticle         = [1.6e4 1.6e4];
+#
+#
+#
+#
+#     % Example in Matlab code is not the exact same example as Klatt et al.: different values for one flow rate and component adsorption, but otherwise every value taken from Klatt et al. 
+#     for Recycle(= Zone IV) flow rate:
+#     flowRate.recycle    = 0.1395e-6;      % m^3/s = MATLAB code; 
+#     Klatt/He paper = Recycle flow rate QIV = 0.0981 cm 3 /s = 9.81e-8 m^3/s 
+#     
+#     Different value for Henry coefficients:
+#     He, Klatt paper: Henry_1 = 	0.54; Henry_2 = 0.28
+#     Matlab code: opt.KA = [0.28, 0.61]; % [comp_A, comp_B], A for raffinate, B for extract
+
 # %%
 from CADETProcess.processModel import ComponentSystem
 from CADETProcess.processModel import Linear
@@ -63,6 +154,7 @@ component_system = ComponentSystem(['A', 'B'])
 binding_model = Linear(component_system)
 binding_model.is_kinetic = False
 binding_model.adsorption_rate = [0.54, 0.28]  # Henry_1 = 	0.54; Henry_2 = 0.28
+# Matlab code: opt.KA = [0.28, 0.61]; % [comp_A, comp_B], A for raffinate, B for extract
 binding_model.desorption_rate = [1, 1]
  
 
@@ -72,25 +164,46 @@ column.binding_model = binding_model
 
 column.length = 0.536  # L [m]
 column.diameter = 2.6e-2  # d [m]
-column.bed_porosity = 0.38  # ε_c [-]
+column.bed_porosity = 0.38  # ε_c [-] 
+# Matlab: porosityColumn
 
 column.particle_porosity = 1.0e-5  # ε_p [-] 
 column.particle_radius = 1.63e-3  # r_p [m]
-column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]
-column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
+#Matlab code:  opt.particleRadius      = 0.325e-2 /2 = 0,001625; 
+#column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]
+column.film_diffusion = component_system.n_comp * [5e-5]
+#Matlab code: opt.filmDiffusion             = [5e-5 5e-5];
+
+#column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
+column.pore_diffusion = component_system.n_comp * [1.6e4]
+#Matlab code: opt.diffusionParticle         = [1.6e4 1.6e4];
+
 column.axial_dispersion = 3.81e-6  # D_ax [m² / s]
+#Matlab code: opt.dispersionColumn          = ones(1,opt.nZone) .* 3.8148e-6;
 column.discretization.npar = 1  # N_r
 column.discretization.ncol = 40  # N_z
 
 column.solution_recorder.write_solution_bulk = True
 
-eluent = Inlet(component_system, name='eluent')
+eluent = Inlet(component_system, name='eluent') #Name in paper = "desorbent"
 eluent.c = [0, 0]  # c_in_D [mol / m^3]
-eluent.flow_rate = 4.14e-8  # Q_D [m^3 / s]
+#Matlab code: Desorbent.concentration = zeros(length(Feed.time), opt.nComponents);
+eluent.flow_rate = 4.14e-8  # Q_D [m^3 / s] 
+#
 
 feed = Inlet(component_system, name='feed')
-feed.c = [2.78e3, 2.78e3]  # c_in [mol / m^3]
+feed.c = [2.78e3, 2.78e3]  # c_in [mol / m^3] => He Matlab, Klatt, NOT HE PAPER
+#He paper: "The inlet concentrations are converted from 0.55 g/m^3 assuming that fructose and glucose have the same molar mass of 180 g/mol." => [3052.84, 3052.84])
+
+#Matlab code: Feed.time = linspace(0, opt.switch, opt.timePoints)
+#Matlab code: Feed.concentration = zeros(length(Feed.time), opt.nComponents)
 feed.flow_rate = 2.0e-8  # Q_F [m^3 / s]
+
+# %%
+import numpy as np
+concentrationFeed 	= np.array([0.5, 0.5])   # g/cm^3 [concentration_compA, concentration_compB]
+opt_molMass         = np.array([180, 180]) #g/mol
+concentrationFeed/opt_molMass*1e6
 
 # %% [markdown]
 # The unit system of the SMB is implemented using the `CarouselBuilder` from CADETProcess. Four zones with two columns in each zone and the connections to their respective external units are implemented as seen in Fig. 5. For more information please refer: [here](https://cadet-process.readthedocs.io/en/stable/user_guide/tools/carousel_builder.html#). (Not using SMB builder because `n_columns` = 2) <br>
@@ -99,24 +212,19 @@ feed.flow_rate = 2.0e-8  # Q_F [m^3 / s]
 # `A_1 * v_1 = A_2 * v_2`
 # ```
 # zone_I -> extract + zone_II
-# Q_I * A = Q_E * A_extract + Q_II * A
-# 1.4e-7 * 5.31e-4 = 3.48e-8 * A_extract + 1.05e-7 * 5.31e-4 
-# A_extract = (1.4e-7  - 1.05e-7 ) / (3.48e-8 / 5.31e-4) = 5.34e-4
-# A_extract / A = 1.006
-# w_e = (Q_E / Q_I 
-# w_e = (3.48e-8 * 1.006) / (1.4e-7) = 0.25
+# w_e = Q_E / Q_I 
+# w_e = (3.48e-8) / (1.4e-7) = 0.249  (= 0.24857142857142855)
 #
 # zoneIII -> raffinate + zone_IV
-# Q_III * A = Q_R * A_raffinate + Q_IV * A
-# 1.25e-7 * 5.31e-4 = 2.66e-8 * A_raffinate + 9.81e-8 * 5.31e-4
-# A_raffinate = (1.25e-7 - 9.81e-8) / (2.66e-8 / 5.31e-4) = 5.37e-4
-# A_raffinate / A = 1.011
-# w_r = (Q_R * Q_III 
-# w_r = (2.66e-8 * 1.011) / (1.25e-7) = 0.215
+# w_r = Q_R / Q_III 
+# w_r = (2.66e-8 ) / (1.25e-7) = 0.213 (= 0.2128000000000000)
 # ``` 
 
 # %%
 column.volume_liquid
+(3.48e-8) / (1.4e-7)
+(2.66e-8 ) / (1.25e-7)
+0.325e-2 /2
 
 # %%
 extract = Outlet(component_system, name='extract')
@@ -148,7 +256,7 @@ builder.add_connection(eluent, zone_I)
 
 builder.add_connection(zone_I, extract)
 builder.add_connection(zone_I, zone_II)
-w_e = 0.248
+w_e = 0.249  
 builder.set_output_state(zone_I, [w_e, 1-w_e])
 
 builder.add_connection(zone_II, zone_III)
@@ -166,34 +274,36 @@ builder.switch_time = 1552
 
 process = builder.build_process()
 
+# %% [markdown]
+# ((CSS - cyclic steady state: dynamic trajectory is repeated after every switch => all columns have same state after specific time laps ))
+
 # %%
 #process = smb_builder.build_process()
 
 from CADETProcess.simulator import Cadet
 process_simulator = Cadet()
 #process_simulator.evaluate_stationarity = True
-process_simulator.n_cycles = 1
+process_simulator.n_cycles = 6
+process_simulator.use_dll = True
 #process_simulator.timeout = 15*60
 #simulate first 8 switch times (1 iteration), conc bis 1mol
 
 process_simulator.time_integrator_parameters.abstol = 1e-10
-process_simulator.time_integrator_parameters.reltol = 1e-6
+process_simulator.time_integrator_parameters.reltol = 1e-6  # Not in Matlab code!, not in Klatt paper 
 process_simulator.time_integrator_parameters.init_step_size = 1e-14
 process_simulator.time_integrator_parameters.max_step_size = 5e6
 
 simulation_results = process_simulator.simulate(process)
-
-_ = simulation_results.solution.raffinate.inlet.plot(start = 0, end = 8 * builder.switch_time)
+cycle = 6
+_ = simulation_results.solution.raffinate.inlet.plot(start = cycle * 0, end = (cycle) * 8 * builder.switch_time)
 _ = simulation_results.solution.extract.inlet.plot(start = 0, end = 8 * builder.switch_time)
-#lief für 75min ohne ergebnis :C
-
-# %% [markdown]
-# ((CSS - cyclic steady state: dynamic trajectory is repeated after every switch => all columns have same state after specific time laps ))
+_ = simulation_results.solution.extract.inlet.plot(start = cycle * 0, end = (cycle) * 8 * builder.switch_time) 
 
 # %%
 raff = simulation_results.solution.raffinate.inlet.solution
 ext = simulation_results.solution.extract.inlet.solution
 t = simulation_results.time_complete
+t
 
 # %%
 import matplotlib.pyplot as plt
@@ -208,55 +318,7 @@ plt.ylim(0,1)
 
 
 # %%
-#class CarouselSolutionBulk(SolutionBase):
-#plot_at_time 
-from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
-axial_conc = CarouselSolutionBulk(builder, simulation_results)
-axial_conc.component_system
-axial_conc.solution
-axial_conc.axial_coordinates
-axial_conc.time
-simulation_results.solution
-axial_conc.plot_at_time(t = 1552)
-
-#switching time -> bisher nur 1x geswitched -> nur einmal wurde column 7 zu column 6, müssen mindestens 8x switchen(für jede säule 1x damit  SMB Process 1x durhgelaufen)
-#8x switching time = 1 cycle
-#machen ein paar cyclen damit sich der CSS eingestellt hat -> Säulen sind komplett gefüllt etc
-
-
-
-# %%
-#process = smb_builder.build_process()
-
-from CADETProcess.simulator import Cadet
-process_simulator = Cadet()
-#process_simulator.evaluate_stationarity = True
-process_simulator.n_cycles = 6
-process_simulator.use_dll = True
-#process_simulator.timeout = 15*60
-#simulate first 8 switch times (1 iteration), conc bis 1mol
-
-process_simulator.time_integrator_parameters.abstol = 1e-10
-process_simulator.time_integrator_parameters.reltol = 1e-6
-process_simulator.time_integrator_parameters.init_step_size = 1e-14
-process_simulator.time_integrator_parameters.max_step_size = 5e6
-
-simulation_results = process_simulator.simulate(process)
-#QUATSCH! mit dem cycle+1
-cycle = 6
-_ = simulation_results.solution.raffinate.inlet.plot(start = cycle * 0, end = (cycle+1) * 8 * builder.switch_time)
-_ = simulation_results.solution.extract.inlet.plot(start = 0, end = 8 * builder.switch_time)
-#lief für 75min ohne ergebnis :C
-
-# %%
-cycle = 6
-_ = simulation_results.solution.extract.inlet.plot(start = cycle * 0, end = (cycle) * 8 * builder.switch_time) 
-#haben kontamination von komponente B die in den Extrakt reinfließt, sieht so aus als wäre switching time um einen switch 1/8 nach hinten verschoben
-
-# %%
-#class CarouselSolutionBulk(SolutionBase):
-#plot_at_time 
-#machen CSS, zur Endzeit, sieht aus als wäre es um einen Switch verschoben
+#class CarouselSolutionBulk(SolutionBase): 
 from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
 axial_conc = CarouselSolutionBulk(builder, simulation_results)
 axial_conc.component_system
@@ -265,5 +327,12 @@ axial_conc.axial_coordinates
 axial_conc.time
 simulation_results.solution
 axial_conc.plot_at_time(t = 74496.0)
+
+# t = 48*switchtime = 6 cycles 
+#for t = switching time -> only 1 column switch, have to at least switch once for every column
+#8x switching time = 1 cycle
+#needs a few cycles to get to CSS => columns are filled completely 
+
+# looks like graph is shifted by 1 switch time 
 
 # %%
