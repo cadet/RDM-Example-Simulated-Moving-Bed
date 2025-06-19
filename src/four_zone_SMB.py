@@ -54,10 +54,10 @@
 # %% [markdown]
 # # Differences in He's Matlab code / He's paper / original case study in [Klatt's paper](https://www.sciencedirect.com/science/article/pii/S0959152401000051?ref=pdf_download&fr=RR-2&rr=94b07706292368ec#TBL1):
 #
-# ## Parameters from Matlab code not in CarouselBuilder Example:
+# ## Parameters from Matlab code(getParameters_binary_case2.m) not in CarouselBuilder Example:
 #
 #         % The parameter setting for simulator
-#         opt.tolIter         = 1e-3;
+#         opt.tolIter         = 1e-4;
 #
 #         % The parameter settting for the SMB
 #         opt.Purity_limit    = [0.99, 0.99];
@@ -69,8 +69,7 @@
 #         opt.enableDebug = true;
 #
 #         % The parameter setting for simulator
-#         opt.nMaxIter        = 1000;
-#         opt.nThreads        = 4;
+#         opt.nThreads        = 4;(/8)
 #         opt.timePoints      = 1000;
 #
 #         opt.yLim            = max(concentrationFeed ./ opt.molMass);
@@ -131,16 +130,14 @@
 #     Matlab code: opt.diffusionParticle         = [1.6e4 1.6e4];
 #
 #
-#
-#
-#     % Example in Matlab code is not the exact same example as Klatt et al.: different values for one flow rate and component adsorption, but otherwise every value taken from Klatt et al. 
-#     for Recycle(= Zone IV) flow rate:
-#     flowRate.recycle    = 0.1395e-6;      % m^3/s = MATLAB code; 
-#     Klatt/He paper = Recycle flow rate QIV = 0.0981 cm 3 /s = 9.81e-8 m^3/s 
+#     3.) Recycle flow rate nomenclature:
+#     Matlab code: Recycle flow rate QI: flowRate.recycle    = 0.1395e-6;      % m^3/s 
+#     Klatt/He paper: Recycle flow rate QIV = 0.0981 cm 3 /s = 9.81e-8 m^3/s 
 #     
-#     Different value for Henry coefficients:
-#     He, Klatt paper: Henry_1 = 	0.54; Henry_2 = 0.28
-#     Matlab code: opt.KA = [0.28, 0.61]; % [comp_A, comp_B], A for raffinate, B for extract
+#     4.) Order of Henry coefficients exchanged:
+#     # Matlab code: opt.KA = [0.28 0.54]; % [comp_A, comp_B], A for raffinate, B for extract
+#     opt.comp_raf_ID = 1;  % the target component withdrawn from the raffinate ports
+#     opt.comp_ext_ID = 2;  % the target component withdrawn from the extract ports    
 
 # %%
 from CADETProcess.processModel import ComponentSystem
@@ -149,12 +146,14 @@ from CADETProcess.processModel import Inlet, Outlet, GeneralRateModel
 
 # Component System
 component_system = ComponentSystem(['A', 'B'])
+# Matlab code: opt.comp_raf_ID = 1;  % the target component withdrawn from the raffinate ports
+# Matlab code: opt.comp_ext_ID = 2;  % the target component withdrawn from the extract ports
 
 # Binding Model
 binding_model = Linear(component_system)
 binding_model.is_kinetic = False
 binding_model.adsorption_rate = [0.54, 0.28]  # Henry_1 = 	0.54; Henry_2 = 0.28
-# Matlab code: opt.KA = [0.28, 0.61]; % [comp_A, comp_B], A for raffinate, B for extract
+# Matlab code: opt.KA = [0.28 0.54]; % [comp_A, comp_B], A for raffinate, B for extract
 binding_model.desorption_rate = [1, 1]
  
 
@@ -229,7 +228,7 @@ column.volume_liquid
 # %%
 extract = Outlet(component_system, name='extract')
 raffinate = Outlet(component_system, name='raffinate')
-from CADETProcess.modelBuilder import SerialZone, ParallelZone
+from CADETProcess.modelBuilder import SerialZone
 
 zone_I = SerialZone(component_system, 'zone_I', n_columns = 2, valve_dead_volume=1e-9)
 zone_II = SerialZone(component_system, 'zone_II', n_columns = 2, valve_dead_volume=1e-9)
@@ -311,6 +310,7 @@ import numpy as np
 
 plt.plot(t, ext*np.pi*0.536*(2.6e-2/2)**2)
 plt.ylim(0,1)
+plt.set_y
 
 # %%
 plt.plot(t, raff*np.pi*0.536*(2.6e-2/2)**2)
