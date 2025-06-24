@@ -25,11 +25,11 @@
 # %% [markdown]
 # The first case study depicted in the paper evaluates the separation of the two components fructose `A` and glucose `B` in a four-zone simulated moving bed (SMB) system with eight columns. The binding behavior follows a linear isotherm.  
 #
-# In addition to the columns a SMB system contains four different external units connected to the columns:
-# 1. Feed: component mixture
-# 2. Raffinate: faster eluting component (elutes before feed plug flow)
-# 3. Extract: slower eluting component (elutes after feed plug flow), interacts more strongly with the column solid phase
-# 4. Desorbant (Eluent): Solution to elute extract from column before raffinate plug flow enters the column again to prevent mixing of the separated components
+# In addition to the columns a general SMB system contains four different external units connected to the columns:
+# 1. Feed (Inlet): Component mixture
+# 2. Raffinate (Outlet): Faster eluting component (elutes before feed plug flow)
+# 3. Extract (Outlet): Slower eluting component (elutes after feed plug flow), interacts more strongly with the column solid phase
+# 4. Desorbant / Eluent (Inlet): Solution to elute extract from column before raffinate plug flow enters the column again to prevent mixing of the separated components
 #
 #
 
@@ -46,15 +46,16 @@
 
 # %% [markdown]
 # As seen in Fig. 5, hold up-volumes between all columns and external units exist and should ideally be considered in thier effect on the SMB elution. (triangle theory) They generally increase retention time and dispersion. (The hold-up volume on either side of a column, i.e., tubing and frits, can be described by a CSTR that is moved through the network together with that column. )(four categories: (1) tubing between multi-port valve and column inlet plus frit before packed bed, (2) frit after packed bed plus tubing between column outlet and multi-port valve, (3) tubing between injection point and multi-port valve, and (4) tubing between multi-port valve and detector. Each of these categories can be modeled as one or more PFR, CSTR and/or DPFR in series. )
-# -> CADET-SMB allows to consider hold-up volumes in the column network. This is demonstrated by introducing CSTR models, Eq. (10), in case study I as illustrated by Fig. 5. The residence time, τCSTR, is varied between 0s, 5s and 10s. Fig. 14 shows the impact of these hold-up volumes on the column states in CSS.
+# -> CADET-SMB allows to consider hold-up volumes in the column network. This is demonstrated by introducing CSTR models, Eq. (10), in case study I as illustrated by Fig. 5. The residence time, τ
+# CSTR, is varied between 0s, 5s and 10s. Fig. 14 shows the impact of these hold-up volumes on the column states in CSS.
 
 # %% [markdown]
-# To simulate the SMB process, first the physical properties of the columns and the Inlet are defined. The mass transfer within the column is characterized by the equilibrium-dispersive model (EDM) which can be derived from the `GeneralRateModel` by defining the spatial discretization `column.discretization.npar` as 1. In the finite volume method, only one radial cell is assumed. The axial column dimension `column.discretization.ncol` is set to 40 axial cells. All numerical values are taken from Table 1.(4. Case Studies). The Henry coefficient can be assumed to equal the equilibrium constant under ideal, linear conditions. 
+# To simulate a SMB process, first the physical properties of the columns and the Inlet are defined. The mass transfer within the column is characterized by the equilibrium-dispersive model (EDM) which can be derived from the `GeneralRateModel` by defining the spatial discretization `column.discretization.npar` as 1. In the finite volume method, only one radial cell is assumed. The axial column dimension `column.discretization.ncol` is set to 40 axial cells. All numerical values are taken from Table 1.(4. Case Studies). The Henry coefficient can be assumed to equal the equilibrium constant under ideal, linear conditions. 
 
 # %% [markdown]
 # # Differences in He's Matlab code / He's paper / original case study in [Klatt's paper](https://www.sciencedirect.com/science/article/pii/S0959152401000051?ref=pdf_download&fr=RR-2&rr=94b07706292368ec#TBL1):
 #
-# ## Parameters from Matlab code(getParameters_binary_case2.m) not in CarouselBuilder Example:
+# ## Parameters from Matlab code (getParameters_binary_case2.m) not in CarouselBuilder Example:
 #
 #         % The parameter setting for simulator
 #         opt.tolIter         = 1e-4;
@@ -70,7 +71,7 @@
 #
 #         % The parameter setting for simulator
 #         opt.nThreads        = 4;(/8)
-#         opt.timePoints      = 1000;
+#         opt.timePoints      = 1000         !!
 #
 #         opt.yLim            = max(concentrationFeed ./ opt.molMass);
 #         
@@ -152,8 +153,9 @@ component_system = ComponentSystem(['A', 'B'])
 # Binding Model
 binding_model = Linear(component_system)
 binding_model.is_kinetic = False
-binding_model.adsorption_rate = [0.54, 0.28]  # Henry_1 = 	0.54; Henry_2 = 0.28
-# Matlab code: opt.KA = [0.28 0.54]; % [comp_A, comp_B], A for raffinate, B for extract
+#binding_model.adsorption_rate = [0.54, 0.28]  # Henry_1 = 	0.54 = fructose; Henry_2 = 0.28 = glucose
+binding_model.adsorption_rate = [0.28, 0.54]
+# Matlab code: opt.KA = [0.28 0.54]; % [comp_A, comp_B], A for raffinate = glucose, B for extract = fructose
 binding_model.desorption_rate = [1, 1]
  
 
@@ -198,12 +200,6 @@ feed.c = [2.78e3, 2.78e3]  # c_in [mol / m^3] => He Matlab, Klatt, NOT HE PAPER
 #Matlab code: Feed.concentration = zeros(length(Feed.time), opt.nComponents)
 feed.flow_rate = 2.0e-8  # Q_F [m^3 / s]
 
-# %%
-import numpy as np
-concentrationFeed 	= np.array([0.5, 0.5])   # g/cm^3 [concentration_compA, concentration_compB]
-opt_molMass         = np.array([180, 180]) #g/mol
-concentrationFeed/opt_molMass*1e6
-
 # %% [markdown]
 # The unit system of the SMB is implemented using the `CarouselBuilder` from CADETProcess. Four zones with two columns in each zone and the connections to their respective external units are implemented as seen in Fig. 5. For more information please refer: [here](https://cadet-process.readthedocs.io/en/stable/user_guide/tools/carousel_builder.html#). (Not using SMB builder because `n_columns` = 2) <br>
 # The percentile of the volume flow that leaves `zone_I` for `extract`(`w_e`) or `zone_II` (`1-w_e`) can be deducted by examining the differences in the volumetric flow rate as all columns have the same cross section `A`(Table 1.). The same can be done for the percentile of the volume flow that leaves `zone_III` for `raffinate`(`w_r`) and `zone_IV` (`1-w_r`) <br>
@@ -218,12 +214,6 @@ concentrationFeed/opt_molMass*1e6
 # w_r = Q_R / Q_III 
 # w_r = (2.66e-8 ) / (1.25e-7) = 0.213 (= 0.2128000000000000)
 # ``` 
-
-# %%
-column.volume_liquid
-(3.48e-8) / (1.4e-7)
-(2.66e-8 ) / (1.25e-7)
-0.325e-2 /2
 
 # %%
 extract = Outlet(component_system, name='extract')
@@ -277,48 +267,75 @@ process = builder.build_process()
 # ((CSS - cyclic steady state: dynamic trajectory is repeated after every switch => all columns have same state after specific time laps ))
 
 # %%
-#process = smb_builder.build_process()
-
 from CADETProcess.simulator import Cadet
 process_simulator = Cadet()
 #process_simulator.evaluate_stationarity = True
-process_simulator.n_cycles = 6
+process_simulator.n_cycles = 13
 process_simulator.use_dll = True
-#process_simulator.timeout = 15*60
-#simulate first 8 switch times (1 iteration), conc bis 1mol
+#Upper panels show the first 40 switching times (five iterations), 
 
 process_simulator.time_integrator_parameters.abstol = 1e-10
 process_simulator.time_integrator_parameters.reltol = 1e-6  # Not in Matlab code!, not in Klatt paper 
 process_simulator.time_integrator_parameters.init_step_size = 1e-14
 process_simulator.time_integrator_parameters.max_step_size = 5e6
 
-simulation_results = process_simulator.simulate(process)
-cycle = 6
-_ = simulation_results.solution.raffinate.inlet.plot(start = cycle * 0, end = (cycle) * 8 * builder.switch_time)
-_ = simulation_results.solution.extract.inlet.plot(start = 0, end = 8 * builder.switch_time)
-_ = simulation_results.solution.extract.inlet.plot(start = cycle * 0, end = (cycle) * 8 * builder.switch_time) 
-
-# %%
-raff = simulation_results.solution.raffinate.inlet.solution
-ext = simulation_results.solution.extract.inlet.solution
-t = simulation_results.time_complete
-t
+simulation_results = process_simulator.simulate(process) #509s
 
 # %%
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.plot(t, ext*np.pi*0.536*(2.6e-2/2)**2)
-plt.ylim(0,1)
-plt.set_y
+raff = simulation_results.solution.raffinate.inlet.solution
+ext = simulation_results.solution.extract.inlet.solution
+t = simulation_results.time_complete
+
+# n = c * V = pi * L * (d/2)**2 
+#volume = np.pi * column.length * (column.diameter / 2) ** 2
+
+fig, axs = plt.subplots(2, 2, figsize=(20, 8))
+ax1 = axs[1, 0]  # Extract 8 swt
+ax2 = axs[1, 1]  # Raffinate 8 swt
+ax3 = axs[0, 0]  # Extract 40 swt
+ax4 = axs[0, 1]  # Raffinate 40 swt
+
+# Extrakt 8 swt
+ax1.plot(t / builder.switch_time, ext)
+ax1.set_title("Extract")
+ax1.set_xlabel("Switches")
+ax1.set_ylabel("c [mM]")
+ax1.set_ylim(0, 1500)
+ax1.set_xlim(0, 8)
+
+
+# Raffinat 8 swt
+ax2.plot(t / builder.switch_time, raff)
+ax2.set_title("Raffinate")
+ax2.set_xlabel("Switches")
+ax2.set_ylabel("c [mM]")
+ax2.set_ylim(0, 1500)
+ax2.set_xlim(0, 8)
+
+# Plot links: Extrakt 40swt
+ax3.plot(t / builder.switch_time, ext)
+ax3.set_title("Extract")
+ax3.set_xlabel("Switches")
+ax3.set_ylabel("c [mM]")
+ax3.set_ylim(0, 3000)
+ax3.set_xlim(0, 40)
+
+# Plot rechts: Raffinat 40 swt
+ax4.plot(t / builder.switch_time, raff)
+ax4.set_title("Raffinate")
+ax4.set_xlabel("Switches")
+ax4.set_ylabel("c [mM]")
+ax4.set_ylim(0, 3000)
+ax4.set_xlim(0, 40)
+
+plt.suptitle("Concentration profiles at extract and raffinate ports for 40 and 8 switch times", fontsize = 18)
+plt.tight_layout()
+plt.show()
 
 # %%
-plt.plot(t, raff*np.pi*0.536*(2.6e-2/2)**2)
-plt.ylim(0,1)
-
-
-# %%
-#class CarouselSolutionBulk(SolutionBase): 
 from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
 axial_conc = CarouselSolutionBulk(builder, simulation_results)
 axial_conc.component_system
@@ -326,13 +343,14 @@ axial_conc.solution
 axial_conc.axial_coordinates
 axial_conc.time
 simulation_results.solution
-axial_conc.plot_at_time(t = 74496.0)
+axial_conc.plot_at_time(t = 104 * builder.switch_time - 1)
+axial_conc.plot_at_time(t = 104 * builder.switch_time)
+#He paper: CSS of case I computed by STD-FPI. The combined axial concentration profiles in all columns are displayed at multiples of the switching time. In this example, a total of 104 switches (= 13 cycles) was required to fall below an error of ɛ
+# Klatt paper: Fig. 4. Axial profile (CSS, end of period) of the SMB fructose/glucose separation during nominal operation and for perturbed values of the isotherm parameters.
 
 # t = 48*switchtime = 6 cycles 
 #for t = switching time -> only 1 column switch, have to at least switch once for every column
 #8x switching time = 1 cycle
 #needs a few cycles to get to CSS => columns are filled completely 
-
-# looks like graph is shifted by 1 switch time 
 
 # %%

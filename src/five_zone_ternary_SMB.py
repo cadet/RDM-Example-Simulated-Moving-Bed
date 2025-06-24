@@ -358,3 +358,5 @@ axial_conc.plot_at_time(t = 40*5*builder.switch_time)
 # %%
 axial_plot_40
 plt.show()
+
+# %%
