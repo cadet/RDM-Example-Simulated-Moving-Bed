@@ -352,5 +352,3 @@ axial_conc.plot_at_time(t = 104 * builder.switch_time)
 #for t = switching time -> only 1 column switch, have to at least switch once for every column
 #8x switching time = 1 cycle
 #needs a few cycles to get to CSS => columns are filled completely 
-
-# %%

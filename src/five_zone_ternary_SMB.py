@@ -35,13 +35,11 @@
 # ## Differences in Parameters He's paper / He's Matlab code / Mun's paper
 # # Kim He/IBT026/CADET-2/SMB/cascade/simulatedMovingBed/examples/Forward/getParameters_ternary_case1.m
 #    
-#     
-#     
 #     1.)  feed concentrations match in He paper text and He table cF = 1.0 g/cm^-3 
 #     -> Do not match original Mun paper: Mun Table 1 cF = 1.0 g/L -> would be 1.0e3 g/cm^3
 #     feed concentrations are too small
 #     Matlab code:     
-#     concentrationFeed 	= [1.0, 1.0, 1.0];    % g/cm^3 [concentration_compA, concentration_compB]
+#     concentrationFeed 	= [1.0, 1.0, 1.0];    % g/cm^3 [concentration_compA, concentration_compB]  => wrong unit 
 #     opt.molMass         = [227.217, 267.24, 251.24192]; % The molar mass of each components
 #     
 #     He's paper: feed.c = [4.41e3, 3.75e3, 3.98e3]  # c_in [mol / m^3]  
@@ -55,6 +53,7 @@
 #
 #     4.) column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
 #     Matlab code: opt.diffusionParticle         = [1.6e4, 1.6e4, 1.6e4];  % D_p
+#
 # # volumetric flow rates, time checked
 #
 #     % Purities archieved at operation point a for components A,B,C: 99.62  71.16	96.78
@@ -67,7 +66,7 @@
 #
 #     opt.timePoints      = 1000;  % the observed time-points
 #     -> For Feed concentration setup
-#     Feed.time = linspace(0, opt.switch, opt.timePoints);  # only 1000 evaluated points during 1 switching time
+#     Feed.time = linspace(0, opt.switch, opt.timePoints);  # 1000 evaluated points during 1 switching time
 #     Feed.concentration = zeros(length(Feed.time), opt.nComponents);
 #
 #     
@@ -96,9 +95,14 @@
 #
 
 # %%
+1/227.217
+
+
+# %%
 from CADETProcess.processModel import ComponentSystem
 from CADETProcess.processModel import Linear
 from CADETProcess.processModel import Inlet, Outlet, GeneralRateModel
+import numpy as np
 
 # Component System
 component_system = ComponentSystem(['A', 'B', 'C'])
@@ -109,10 +113,10 @@ component_system = ComponentSystem(['A', 'B', 'C'])
 
 # Binding Model
 binding_model = Linear(component_system)
-binding_model.is_kinetic = False
-binding_model.adsorption_rate = [3.15, 7.40, 23.0]  # Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
-
-binding_model.desorption_rate = [1, 1, 1]
+binding_model.is_kinetic = True
+mass_transfer = [1, 0.5, 0.1]
+binding_model.adsorption_rate = np.divide([3.15, 7.40, 23.0], mass_transfer)  # Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
+binding_model.desorption_rate = np.divide([1, 1, 1], mass_transfer)  # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
 
 # Column
 column = GeneralRateModel(component_system, name='column')
@@ -120,13 +124,13 @@ column.binding_model = binding_model
 column.length = 0.150 # L [m]
 column.diameter = 1.0e-2  # d [m]
 column.bed_porosity = 0.80  # ε_c [-]
-column.particle_porosity = 1.0e-5  # ε_p [-] 
+column.particle_porosity = 1.0e-8  # ε_p [-] 
 #Matlab code: opt.porosityParticle    = 0.00000001;   % e_p very small to ensure e_t = e_c  => would be 1.0e-8
 column.particle_radius = 1.50e-5  # r_p [m]
 
 #column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]  
-column.film_diffusion = [5.0e-5, 2.5e-5, 5.0e-5]
-#Matlab code: opt.filmDiffusion             = [5.0e-5, 2.5e-5, 5.0e-5];  % K_f
+column.film_diffusion = [5.0e-5, 5.0e-5, 5.0e-5]
+#Matlab code: opt.filmDiffusion             = [5.0e-5, 2.5e-5, 5.0e-5];  % K_f   Componente B fits better with 5.0e-5
 
 #column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
 column.pore_diffusion = [1.6e4, 1.6e4, 1.6e4]
@@ -180,10 +184,12 @@ Q_I = 2.92e-7
 Q_II = 1.05e-7
 Q_IV =7.50e-8
 Q_V = 5.82e-8
-A_raffinate
+#A_raffinate
 Q_E / Q_I 
 Q_E2 / Q_II 
 Q_R / Q_IV 
+
+# %%
 
 # %%
 extract_1 = Outlet(component_system, name = 'extract_1')
@@ -243,52 +249,6 @@ process = builder.build_process()
 # %%
 from CADETProcess.simulator import Cadet
 process_simulator = Cadet()
-#process_simulator.evaluate_stationarity = True  # langsam
-process_simulator.n_cycles = 1  # lässt die conc. ordinate von e-14 auf e-8 steigen, konzentrationen gehen nicht mehr ins negative, peaks fangen erst ab 8min an?
-# cycle_time = self.n_columns * self.switch_time
-simulation_results = process_simulator.simulate(process)
-
-_ = simulation_results.solution.raffinate.inlet.plot()
-_ = simulation_results.solution.extract_1.inlet.plot()
-_ = simulation_results.solution.extract_2.inlet.plot()
-#_ = simulation_results.sensitivity['column.axial_dispersion'].column.outlet.plot()
-#simulation_results.time_elapsed()
-
-# %%
-200.99/5
-print(1e3/227.217, 1e3/267.24, 1e3/251.24192)
-
-# %%
-#process = smb_builder.build_process()
-
-from CADETProcess.simulator import Cadet
-process_simulator = Cadet()
-#process_simulator.evaluate_stationarity = True
-process_simulator.n_cycles = 40  #200.99 steps = 200.99 switch times -> 40.198
-process_simulator.use_dll = True
-#process_simulator.timeout = 15*60
-#simulate first 8 switch times (1 iteration), conc bis 1mol
-
-process_simulator.time_integrator_parameters.abstol = 1e-10
-process_simulator.time_integrator_parameters.reltol = 1e-6  # Not in Matlab code!, not in Klatt paper 
-process_simulator.time_integrator_parameters.init_step_size = 1e-14
-process_simulator.time_integrator_parameters.max_step_size = 5e6
-
-simulation_results = process_simulator.simulate(process)
-cycle = 40
-_ = simulation_results.solution.raffinate.inlet.plot()
-_ = simulation_results.solution.extract_1.inlet.plot()
-_ = simulation_results.solution.extract_2.inlet.plot()
-_ = simulation_results.solution.raffinate.inlet.plot(start = cycle * 0, end = (cycle) * 5 * builder.switch_time)
-#674s fpr simulation
-#_ = simulation_results.solution.extract.inlet.plot(start = 0, end = 5 * builder.switch_time)
-#_ = simulation_results.solution.extract.inlet.plot(start = cycle * 0, end = (cycle) * 5 * builder.switch_time) 
-
-# %%
-#process = smb_builder.build_process()
-
-from CADETProcess.simulator import Cadet
-process_simulator = Cadet()
 #process_simulator.evaluate_stationarity = True
 process_simulator.n_cycles = 41  #200.99 steps = 200.99 switch times -> 40.198
 process_simulator.use_dll = True
@@ -300,7 +260,7 @@ process_simulator.time_integrator_parameters.reltol = 1e-6  # Not in Matlab code
 process_simulator.time_integrator_parameters.init_step_size = 1e-14
 process_simulator.time_integrator_parameters.max_step_size = 5e6
 
-process_simulator.time_resolution = builder.switch_time / 1000  # default value is 1 second.  Matlab code: Feed.time = linspace(0, opt.switch, opt.timePoints);
+#process_simulator.time_resolution = builder.switch_time / 1000  # default value is 1 second.  Matlab code: Feed.time = linspace(0, opt.switch, opt.timePoints);
 
 simulation_results = process_simulator.simulate(process)
 cycle = 41
@@ -308,38 +268,73 @@ _ = simulation_results.solution.raffinate.inlet.plot()
 _ = simulation_results.solution.extract_1.inlet.plot()
 _ = simulation_results.solution.extract_2.inlet.plot()
 _ = simulation_results.solution.raffinate.inlet.plot(start = cycle * 0, end = 200.99 * builder.switch_time)
-_ = simulation_results.solution.extract.inlet.plot(start = 0, end = 5 * builder.switch_time)
-_ = simulation_results.solution.extract.inlet.plot(start = cycle * 0, end = 200.99 * builder.switch_time) 
 
 # %%
-raff_40 = simulation_results.solution.raffinate.inlet.solution
-ext1_40 = simulation_results.solution.extract_1.inlet.solution
-ext2_40 = simulation_results.solution.extract_2.inlet.solution
+import numpy as np
+raff_mM = simulation_results.solution.raffinate.inlet.solution
+ext1_mM = simulation_results.solution.extract_1.inlet.solution
+ext2_mM = simulation_results.solution.extract_2.inlet.solution
 t = simulation_results.time_complete
-t
+
+# Transformation from mM to g/L
+molar_mass = [227.217, 267.24, 251.24192]  # molar mass of each component
+raff = np.multiply(raff_mM, molar_mass) * 1e-3
+ext_1 = np.multiply(ext1_mM, molar_mass) * 1e-3
+ext_2 = np.multiply(ext2_mM, molar_mass) * 1e-3
+
 
 # %%
-40*5*builder.switch_time
+import matplotlib.pyplot as plt
+
+fig, axs = plt.subplots(2, 2, figsize=(20, 17))
+ax1 = axs[0, 0]  # Raff
+ax2 = axs[0, 1]  # Ext2
+ax3 = axs[1, 0]  # Ext1
+
+ax1.plot(t / builder.switch_time, raff)
+ax1.set_title("Raffinate")
+ax1.set_xlabel("Switches")
+ax1.set_ylabel("c [g / L]")
+ax1.set_ylim(0, 1)
+#ax1.set_xlim(0, 8)
+
+ax2.plot(t / builder.switch_time, ext_2)
+ax2.set_title("Extract 2")
+ax2.set_xlabel("Switches")
+ax2.set_ylabel("c [g / L]")
+ax2.set_ylim(0, 0.8)
+#ax2.set_xlim(0, 8)
+
+ax3.plot(t / builder.switch_time, ext_1)
+ax3.set_title("Extract 1")
+ax3.set_xlabel("Switches")
+ax3.set_ylabel("c [g / L]")
+ax3.set_ylim(0, 0.8)
+#ax3.set_xlim(0, 40)
 
 # %%
-(200.99 * builder.switch_time)/5
+simulation_results
 
 # %%
 #class CarouselSolutionBulk(SolutionBase): 
 from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
 axial_conc = CarouselSolutionBulk(builder, simulation_results)
-axial_conc.component_system
-axial_conc.solution
-axial_conc.axial_coordinates
-axial_conc.time
-simulation_results.solution
-axial_conc.plot_at_time(t = 40*5*builder.switch_time)
-# t = 48*switchtime = 6 cycles 
-#for t = switching time -> only 1 column switch, have to at least switch once for every column
-#8x switching time = 1 cycle
-#needs a few cycles to get to CSS => columns are filled completely 
+#axial_conc.component_system
+#axial_conc.solution
+#axial_conc.axial_coordinates
+#axial_conc.time
+#simulation_results.solution
+ax1, _ = axial_conc.plot_at_time(t=200.01 * builder.switch_time) #, ax = _plot_solution_1D(ax = ) )
+ax2, _ = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
 
-# looks like graph is shifted by 1 switch time 
+# CADET output in mM = mol / m^3
+# mM -> g / L 
+
+# component C correct 
+
+
+# %%
+ax1
 
 # %% [markdown]
 # ```{figure} ./figures/ternary.png
@@ -354,9 +349,3 @@ axial_conc.plot_at_time(t = 40*5*builder.switch_time)
 # <div style="text-align: center">
 # (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, Operation mode: Standard mode (at 200.99 steps)
 # <div>
-
-# %%
-axial_plot_40
-plt.show()
-
-# %%
