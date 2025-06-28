@@ -95,8 +95,12 @@
 #
 
 # %%
-1/227.217
-
+# Transformation of datatypes for adsorption/desorption rates with mass transfer
+mass_transfer = [1, 0.5, 0.1]
+arr1 = np.divide([3.15, 7.40, 23.0], mass_transfer)# Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ;  list(np.divide([1, 1, 1], mass_transfer)) 
+arr2 = np.divide([1, 1, 1], mass_transfer) 
+k_a = [float(x) for x in arr1]
+k_d = [float(x) for x in arr2]
 
 # %%
 from CADETProcess.processModel import ComponentSystem
@@ -115,8 +119,10 @@ component_system = ComponentSystem(['A', 'B', 'C'])
 binding_model = Linear(component_system)
 binding_model.is_kinetic = True
 mass_transfer = [1, 0.5, 0.1]
-binding_model.adsorption_rate = np.divide([3.15, 7.40, 23.0], mass_transfer)  # Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
-binding_model.desorption_rate = np.divide([1, 1, 1], mass_transfer)  # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
+#binding_model.adsorption_rate = [3.15, 7.40, 23.0]# Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
+binding_model.adsorption_rate = k_a
+#binding_model.desorption_rate = [1, 1, 1] # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
+binding_model.desorption_rate = k_d
 
 # Column
 column = GeneralRateModel(component_system, name='column')
@@ -188,8 +194,6 @@ Q_V = 5.82e-8
 Q_E / Q_I 
 Q_E2 / Q_II 
 Q_R / Q_IV 
-
-# %%
 
 # %%
 extract_1 = Outlet(component_system, name = 'extract_1')
@@ -282,7 +286,6 @@ raff = np.multiply(raff_mM, molar_mass) * 1e-3
 ext_1 = np.multiply(ext1_mM, molar_mass) * 1e-3
 ext_2 = np.multiply(ext2_mM, molar_mass) * 1e-3
 
-
 # %%
 import matplotlib.pyplot as plt
 
@@ -313,9 +316,6 @@ ax3.set_ylim(0, 0.8)
 #ax3.set_xlim(0, 40)
 
 # %%
-simulation_results
-
-# %%
 #class CarouselSolutionBulk(SolutionBase): 
 from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
 axial_conc = CarouselSolutionBulk(builder, simulation_results)
@@ -334,7 +334,25 @@ ax2, _ = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
 
 
 # %%
-ax1
+dir(ax1[0])
+#fig = ax1[0].figure  # Hole die Figure vom Axes-Objekt
+    # (In vielen Umgebungen funktioniert das, aber nicht überall)
+   # Funktioniert global für aktive Figuren
+
+
+fig = ax1[0].figure
+#fig.show()
+#ax = ax1[0]
+#ax.set_title("zone_I")
+plt.show()
+
+
+print(ax.get_title())        # → "zone_I"
+print(ax.get_xlim())         # → z. B. (0.0, 1.0)
+print(dir(ax1[0]))               # → alle Attribute und Methoden
+#ax1[0].plot()
+print(ax1[0].lines)  # zeigt alle Linien-Objekte
+
 
 # %% [markdown]
 # ```{figure} ./figures/ternary.png
