@@ -96,6 +96,7 @@
 
 # %%
 # Transformation of datatypes for adsorption/desorption rates with mass transfer
+import numpy as np
 mass_transfer = [1, 0.5, 0.1]
 arr1 = np.divide([3.15, 7.40, 23.0], mass_transfer)# Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ;  list(np.divide([1, 1, 1], mass_transfer)) 
 arr2 = np.divide([1, 1, 1], mass_transfer) 
