@@ -58,6 +58,9 @@
 # <div style="text-align: center">
 # (Fig. 1, He et al.) Schematic of four-zone SMB chromatography for binary separations. Column positions are periodically switched in opposite direction of liquid flow.
 
+# %%
+# Four-zone binary SMB
+
 # %% [markdown]
 # ```{figure} ./figures/case_study1_practical_setup.jpg
 # :width: 600px
@@ -69,9 +72,6 @@
 # As seen in Fig. 5, hold up-volumes between all columns and external units exist and should ideally be considered in thier effect on the SMB elution. (triangle theory) They generally increase retention time and dispersion. (The hold-up volume on either side of a column, i.e., tubing and frits, can be described by a CSTR that is moved through the network together with that column. )(four categories: (1) tubing between multi-port valve and column inlet plus frit before packed bed, (2) frit after packed bed plus tubing between column outlet and multi-port valve, (3) tubing between injection point and multi-port valve, and (4) tubing between multi-port valve and detector. Each of these categories can be modeled as one or more PFR, CSTR and/or DPFR in series. )
 # -> CADET-SMB allows to consider hold-up volumes in the column network. This is demonstrated by introducing CSTR models, Eq. (10), in case study I as illustrated by Fig. 5. The residence time, τ
 # CSTR, is varied between 0s, 5s and 10s. Fig. 14 shows the impact of these hold-up volumes on the column states in CSS.
-
-# %% [markdown]
-# To simulate a SMB process, first the physical properties of the columns and the Inlet are defined. The mass transfer within the column is characterized by the equilibrium-dispersive model (EDM) which can be derived from the `GeneralRateModel` by defining the spatial discretization `column.discretization.npar` as 1. In the finite volume method, only one radial cell is assumed. The axial column dimension `column.discretization.ncol` is set to 40 axial cells. All numerical values are taken from Table 1.(4. Case Studies). The Henry coefficient can be assumed to equal the equilibrium constant under ideal, linear conditions. 
 
 # %% [markdown]
 # # Differences in He's Matlab code / He's paper / original case study in [Klatt's paper](https://www.sciencedirect.com/science/article/pii/S0959152401000051?ref=pdf_download&fr=RR-2&rr=94b07706292368ec#TBL1):
@@ -160,6 +160,15 @@
 #     # Matlab code: opt.KA = [0.28 0.54]; % [comp_A, comp_B], A for raffinate, B for extract
 #     opt.comp_raf_ID = 1;  % the target component withdrawn from the raffinate ports
 #     opt.comp_ext_ID = 2;  % the target component withdrawn from the extract ports    
+
+# %% [markdown]
+# The first of the five case studies depicted in the paper evaluates the separation of the two components glucose `A` and fructose `B` in a four-zone simulated moving bed (SMB) system with eight columns. The binding behavior follows a linear isotherm. 
+# This experiment was originally simulated and published by Klatt et al. in "Model-based control of a simulated moving bed chromatographic process for the separation of fructose and glucose" (Karsten-Ulrich Klatt, Felix Hanisch, Guido Dünnebier, Journal of Process Control 2002; 12(2):203-219. https://doi.org/10.1016/S0959-1524(01)00005-1.) <br>
+# https://www.sciencedirect.com/science/article/abs/pii/S0959152401000051
+#
+# To simulate a SMB process, first the physical properties of the columns and the Inlet are defined. The mass transfer within the column is characterized by the equilibrium-dispersive model (EDM) which can be derived from the `GeneralRateModel` by defining the spatial discretization `column.discretization.npar` as 1. In the finite volume method, only one radial cell is assumed. The axial column dimension `column.discretization.ncol` is set to 40 axial cells. ((All numerical values are taken from Table 1.(4. Case Studies))). The Henry coefficient can be assumed to equal the equilibrium constant under ideal, linear conditions. 
+# The axial concentration of every column can later be visualized at a specific time by plotting the `column.solution_recorder.write_solution_bulk` concentration. 
+#
 
 # %%
 from CADETProcess.processModel import ComponentSystem
@@ -355,6 +364,11 @@ ax4.set_xlim(0, 40)
 plt.suptitle("Concentration profiles at extract and raffinate ports for 40 and 8 switch times", fontsize = 18)
 plt.tight_layout()
 plt.show()
+
+# %% [markdown]
+# Component A glucose is recovered in the raffinate and fructose in the extract outlet. The establishment of the cyclic steady state (CSS) can be seen in the upper graphs. At around the 30th switching time, the concentration profiles start to not change noticibly anymore.  
+#
+# To visualize the axial concentration of every column at the CSS, the **bulk** concentrations are plotted at the end of the period before the 104th switch, the start of the 13th cycle. 
 
 # %%
 from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
