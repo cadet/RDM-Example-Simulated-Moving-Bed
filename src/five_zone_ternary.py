@@ -318,15 +318,15 @@ ax3.set_ylim(0, 0.8)
 
 # %%
 #class CarouselSolutionBulk(SolutionBase): 
-from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
-axial_conc = CarouselSolutionBulk(builder, simulation_results)
+#from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
+#axial_conc = CarouselSolutionBulk(builder, simulation_results)
 #axial_conc.component_system
 #axial_conc.solution
 #axial_conc.axial_coordinates
 #axial_conc.time
 #simulation_results.solution
-ax1, _ = axial_conc.plot_at_time(t=200.01 * builder.switch_time) #, ax = _plot_solution_1D(ax = ) )
-ax2, _ = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
+#ax1, _ = axial_conc.plot_at_time(t=200.01 * builder.switch_time) #, ax = _plot_solution_1D(ax = ) )
+#ax2, _ = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
 
 # CADET output in mM = mol / m^3
 # mM -> g / L 
@@ -335,24 +335,24 @@ ax2, _ = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
 
 
 # %%
-dir(ax1[0])
+#dir(ax1[0])
 #fig = ax1[0].figure  # Hole die Figure vom Axes-Objekt
     # (In vielen Umgebungen funktioniert das, aber nicht überall)
    # Funktioniert global für aktive Figuren
 
 
-fig = ax1[0].figure
+#fig = ax1[0].figure
 #fig.show()
 #ax = ax1[0]
 #ax.set_title("zone_I")
-plt.show()
+#plt.show()
 
 
-print(ax.get_title())        # → "zone_I"
-print(ax.get_xlim())         # → z. B. (0.0, 1.0)
-print(dir(ax1[0]))               # → alle Attribute und Methoden
+#print(ax.get_title())        # → "zone_I"
+#print(ax.get_xlim())         # → z. B. (0.0, 1.0)
+#print(dir(ax1[0]))               # → alle Attribute und Methoden
 #ax1[0].plot()
-print(ax1[0].lines)  # zeigt alle Linien-Objekte
+#print(ax1[0].lines)  # zeigt alle Linien-Objekte
 
 
 # %% [markdown]
