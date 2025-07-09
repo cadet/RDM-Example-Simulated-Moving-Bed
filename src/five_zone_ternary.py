@@ -18,7 +18,8 @@
 # # Ternary separation
 
 # %% [markdown]
-# Case study III examines the separation of the three components 2’-deoxycytidine `A`, 2’-deoxyguanosine `B`, and 2’-deoxyadenosine `C`. The SMB system with a  standard five-zone scheme is assumed. (No partial-feeding and partial-closing) 
+# Case study III examines the separation of the three components 2’-deoxycytidine `A`, 2’-deoxyguanosine `B` and 2’-deoxyadenosine `C`. A standard five-zone SMB system with two extract ports and without partial-feeding or partial-closing is assumed. <br> This experiment was originally simulated and published by Mun et al. in "Improving performance of a five-zone simulated moving bed chromatography for ternary separation by simultaneous use of partial-feeding and partial-closing of the product port in charge of collecting the intermediate-affinity solute molecules" (Sungyong Mun, Journal of Chromatography A 2011;  1218(44):8060-8074) <br> https://doi.org/10.1016/j.chroma.2011.09.015.
+#
 
 # %% [markdown]
 # ```{figure} ./figures/case_study3.jpg
@@ -29,11 +30,9 @@
 
 # %% [markdown]
 # (Ternary separation with a five zone system is particularly effective when the target component is present in much higher abundance than the more strongly retained component.)
-# The 
 
 # %% [markdown]
 # ## Differences in Parameters He's paper / He's Matlab code / Mun's paper
-# # Kim He/IBT026/CADET-2/SMB/cascade/simulatedMovingBed/examples/Forward/getParameters_ternary_case1.m
 #    
 #     1.)  feed concentrations match in He paper text and He table cF = 1.0 g/cm^-3 
 #     -> Do not match original Mun paper: Mun Table 1 cF = 1.0 g/L -> would be 1.0e3 g/cm^3
@@ -169,32 +168,26 @@ feed.flow_rate = 1.67e-8  # Q_F [m^3 / s]  Matlab code: flowRate.feed       = 1.
 # Q_I = Q_E + Q_II 
 #
 # zone_II -> extract_2 + zone_III
-# Q_II * A = Q_E2 * A_extract2 + Q_III * A
+# Q_II = Q_E2 + Q_III 
 #
 # zoneIV -> raffinate + zone_V
-# Q_IV * A = Q_R * A_raffinate + Q_V * A
+# Q_IV = Q_R + Q_V 
 #
 # w_e1 = Q_E / Q_I = 0.6438
 # w_e2 = Q_E2 / Q_II = 0.4419
 # w_r = Q_R / Q_IV = 0.224
 
 # %%
+#Q_R = 1.68e-8  # Operating point a, Table 3 Mun et al.
+#Q_E = 1.88e-7  # Operating point a, Table 3
+#Q_E2 = 4.64e-8  
+#Q_I = 2.92e-7
+#Q_II = 1.05e-7
+#Q_IV =7.50e-8
 
-
-#A_extract1 / A = 0.9946
-#A_extract2 / A = 1.0065
-print(1.667e-8 * 	1.009)
-Q_R = 1.68e-8  # Operating point a, Table 3 Mun et al.
-Q_E = 1.88e-7  # Operating point a, Table 3
-Q_E2 = 4.64e-8  
-Q_I = 2.92e-7
-Q_II = 1.05e-7
-Q_IV =7.50e-8
-Q_V = 5.82e-8
-#A_raffinate
-Q_E / Q_I 
-Q_E2 / Q_II 
-Q_R / Q_IV 
+#Q_E / Q_I 
+#Q_E2 / Q_II 
+#Q_R / Q_IV 
 
 # %%
 extract_1 = Outlet(component_system, name = 'extract_1')

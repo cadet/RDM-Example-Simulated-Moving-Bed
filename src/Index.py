@@ -25,7 +25,7 @@
 # %% [markdown]
 # ## Theoretical background
 #
-# Continuous processes generally have many benefits over batch processes, like higher efficiency and throughput. However, a truly continuous chromatography process is not practically feasable. This so called true moving bed chromatography would entail the solid phase of the chromatography column (the bed) moving in the opposite direction to the mobile phase. This would induce the local separation of components in the feed solution based on their column binding behaviour. Those components could then by retrieved by different outlet streams located upstream and downstream of the feed inlet. 
+# Continuous processes generally have many benefits over batch processes, like higher efficiency and throughput. However, a truly continuous chromatography process is not practically feasable. This so called **true moving bed chromatography** would entail the solid phase of the chromatography column (the bed) moving in the opposite direction to the mobile phase. This would induce the local separation of components in the feed solution based on their column binding behaviour. Those components could then by retrieved by different outlet streams located upstream and downstream of the feed inlet. 
 #
 # ```{figure} ./figures/true_MB.png
 # :width: 400px
@@ -37,7 +37,7 @@
 #
 
 # %% [markdown]
-# Simulated Moving Bed Chromatography is a way to approach such a continuous process in practice. This is realized by having multiple chromatography columns connected to each other in a caroussel. By periodically switching the inlet and outlet valves connected to the columns ("column switching") the movement of the solid phase can be mimicked. 
+# **Simulated Moving Bed Chromatography** is a way to approach such a continuous process in practice. This is realized by having multiple chromatography columns connected to each other in a caroussel. By periodically switching the inlet and outlet valves connected to the columns ("column switching") the movement of the solid phase can be mimicked. 
 #
 # A general SMB system contains four different external units connected to the columns:
 # 1. Feed (Inlet): Component mixture
@@ -46,7 +46,7 @@
 # There can be multiple extract or raffinate outlets in a SMB system depending on the number of components to be separated.
 # 4. Desorbant / Eluent / Solvent (Inlet): Solution to elute extract from column before raffinate plug flow enters the column again to prevent mixing of the separated components
 #
-# The position of each column relative to these external units determines their specific “Zone” in the SMB system. Based on thier external units, every zone has a different function in the seperation process and a different flow rate within the columns. The most basic SMB system for binary separation is made up of four zones with one chromatography column in each zone. 
+# The position of each column relative to these external units determines their specific **“Zone”** in the SMB system. Based on thier external units, every zone has a different function in the seperation process and a different flow rate within the columns. The most basic SMB system for binary separation is made up of four zones with one chromatography column in each zone. 
 #
 
 # %% [markdown]
