@@ -119,7 +119,7 @@ component_system = ComponentSystem(['A', 'B', 'C'])
 binding_model = Linear(component_system)
 binding_model.is_kinetic = True
 #mass_transfer = [1, 0.5, 0.1]
-binding_model.adsorption_rate = [3.15, 7.40, 23.0]# Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
+binding_model.adsorption_rate = [3.15, 7.40, 23.0]  # Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
 #binding_model.adsorption_rate = k_a
 binding_model.desorption_rate = [1, 1, 1] # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
 #binding_model.desorption_rate = k_d
@@ -308,11 +308,18 @@ ax3.set_ylim(0, 0.8)
 #ax3.set_xlim(0, 40)
 
 # %%
-class CarouselSolutionBulk(SolutionBase): 
+#class CarouselSolutionBulk(SolutionBase): 
 from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
 axial_conc = CarouselSolutionBulk(builder, simulation_results)
 _ = axial_conc.plot_at_time(t=200.01 * builder.switch_time) #, ax = _plot_solution_1D(ax = ) )
 _ = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
+
+# %% [markdown]
+# ```{figure} ./figures/ternary_separation_Mun.png
+# :width: 800px
+# <div style="text-align: center">
+# (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, Operation mode: Standard mode (at 200.99 steps), numerical simulations where the mass-transfer effects were minimized to approach an equilibrium (or ideal) state.
+# <div>
 
 # %%
 #class CarouselSolutionBulk(SolutionBase): 
@@ -352,13 +359,6 @@ _ = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
 #ax1[0].plot()
 #print(ax1[0].lines)  # zeigt alle Linien-Objekte
 
-
-# %% [markdown]
-# ```{figure} ./figures/ternary_separation_Mun.png
-# :width: 800px
-# <div style="text-align: center">
-# (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, Operation mode: Standard mode (at 200.99 steps), numerical simulations where the mass-transfer effects were minimized to approach an equilibrium (or ideal) state.
-# <div>
 
 # %% [markdown]
 # ```{figure} ./figures/ternary.png
