@@ -37,7 +37,7 @@
 #
 
 # %% [markdown]
-# **Simulated Moving Bed Chromatography** is a way to approach such a continuous process in practice. This is realized by having multiple chromatography columns connected to each other in a caroussel. By periodically switching the inlet and outlet valves connected to the columns ("column switching") the movement of the solid phase can be mimicked. 
+# **Simulated Moving Bed Chromatography** is a way to approach such a continuous process in practice. This is realized by having multiple chromatography columns connected to each other in a carousel. By periodically switching the inlet and outlet valves connected to the columns ("column switching") the movement of the solid phase can be mimicked. 
 #
 # A general SMB system contains four different external units connected to the columns:
 # 1. Feed (Inlet): Component mixture

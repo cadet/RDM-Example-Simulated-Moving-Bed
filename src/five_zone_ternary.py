@@ -134,12 +134,12 @@ column.particle_porosity = 1.0e-8  # ε_p [-]
 #Matlab code: opt.porosityParticle    = 0.00000001;   % e_p very small to ensure e_t = e_c  => would be 1.0e-8
 column.particle_radius = 1.50e-5  # r_p [m]
 
-#column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]  
-column.film_diffusion = [5.0e-5, 5.0e-5, 5.0e-5]
+column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]  
+#column.film_diffusion = [5.0e-5, 5.0e-5, 5.0e-5]
 #Matlab code: opt.filmDiffusion             = [5.0e-5, 2.5e-5, 5.0e-5];  % K_f   Componente B fits better with 5.0e-5
 
-#column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
-column.pore_diffusion = [1.6e4, 1.6e4, 1.6e4]
+column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
+#column.pore_diffusion = [1.6e4, 1.6e4, 1.6e4]
 #Matlab code: opt.diffusionParticle         = [1.6e4, 1.6e4, 1.6e4];  % D_p
 
 
@@ -240,7 +240,7 @@ builder.set_output_state(zone_IV, [w_r, 1 - w_r])
 
 builder.add_connection(zone_V, zone_I)
 
-builder.switch_time = 264  # Fig 8 - standard mode at 200.99 steps n = step number/switching number
+builder.switch_time = 264  
 
 process = builder.build_process()
 
@@ -250,8 +250,6 @@ process_simulator = Cadet()
 #process_simulator.evaluate_stationarity = True
 process_simulator.n_cycles = 41  #200.99 steps = 200.99 switch times -> 40.198
 process_simulator.use_dll = True
-#process_simulator.timeout = 15*60
-#simulate first 8 switch times (1 iteration), conc bis 1mol
 
 process_simulator.time_integrator_parameters.abstol = 1e-10
 process_simulator.time_integrator_parameters.reltol = 1e-6  # Not in Matlab code!, not in Klatt paper 

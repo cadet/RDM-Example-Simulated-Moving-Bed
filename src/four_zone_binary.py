@@ -23,11 +23,6 @@
 #
 
 # %% [markdown]
-# The first of the five case studies depicted in the paper evaluates the separation of the two components fructose `A` and glucose `B` in a four-zone simulated moving bed (SMB) system with eight columns. The binding behavior follows a linear isotherm. 
-# This experiment was originally simulated and published by Klatt et al. in "Model-based control of a simulated moving bed chromatographic process for the separation of fructose and glucose" (Karsten-Ulrich Klatt, Felix Hanisch, Guido Dünnebier, Journal of Process Control 2002; 12(2):203-219. https://doi.org/10.1016/S0959-1524(01)00005-1.) <br>
-# https://www.sciencedirect.com/science/article/abs/pii/S0959152401000051
-#
-#
 # Continuous processes generally have many benefits over batch processes, like higher efficiency and throughput. However, a truly continuous chromatography process is not practically feasable. This so called **true moving bed chromatography** would entail the solid phase of the chromatography column (the bed) moving in the opposite direction of the mobile phase. This would induce the local separation of components in the feed solution based on their column binding behaviour. Those components could then by retrieved by different outlet streams located upstream and downstream of the feed inlet. 
 #
 # ```{figure} ./figures/true_MB.png
@@ -164,7 +159,7 @@
 # As seen in Fig. 5, **hold up-volumes** between all columns and external units exist and should ideally be considered in thier effect on the SMB elution. They generally increase retention time and dispersion and could be described by **CSTRs** within the [**flow sheet**](https://cadet-process.readthedocs.io/en/v0.10.1/user_guide/process_model/flow_sheet.html). In the following example hold-up volumes are not considered.
 
 # %% [markdown]
-# To simulate a SMB process, first the physical properties of the columns and the Inlet are defined. The mass transfer within the column is characterized by the equilibrium-dispersive model (EDM) which can be derived from the `GeneralRateModel` by defining the spatial discretization `column.discretization.npar` as 1. In the finite volume method, only one radial cell is assumed. The axial column dimension `column.discretization.ncol` is set to 40 axial cells. All numerical values are taken from Table 1 (4. Case Studies). The feed concentration is converted from 0.5 g/m^3 in accordance with Klatt et al., assuming that fructose and glucose have the same molar mass of 180 g/mol. The Henry coefficient can be assumed to equal the equilibrium constant under ideal, linear conditions. 
+# To simulate a SMB process, first the physical properties of the columns and the Inlet are defined. The mass transfer within the column is characterized by the equilibrium-dispersive model (EDM) which can be derived from the `GeneralRateModel` by defining the spatial discretization `column.discretization.npar` as 1. In the finite volume method, only one radial cell is assumed. The axial column dimension `column.discretization.ncol` is set to 40 axial cells. To avaoid rate-limiting`film_diffusion` and `pore_diffusion`, their numerical values were swapped compared to those in the publication of He et al.. The feed concentration is converted from 0.5 g/m^3 in accordance with Klatt et al., assuming that fructose and glucose have the same molar mass of 180 g/mol. All other numerical values are taken from Table 1 (He et al.). The Henry coefficient can be assumed to equal the equilibrium constant under ideal, linear conditions. 
 # The axial concentration of every column can later be visualized at a specific time by plotting the `column.solution_recorder.write_solution_bulk` concentration. 
 
 # %%
@@ -174,8 +169,6 @@ from CADETProcess.processModel import Inlet, Outlet, GeneralRateModel
 
 # Component System
 component_system = ComponentSystem(['A', 'B'])
-# Matlab code: opt.comp_raf_ID = 1;  % the target component withdrawn from the raffinate ports
-# Matlab code: opt.comp_ext_ID = 2;  % the target component withdrawn from the extract ports
 
 # Binding Model
 binding_model = Linear(component_system)
@@ -197,13 +190,9 @@ column.bed_porosity = 0.38  # ε_c [-]
 column.particle_porosity = 1.0e-5  # ε_p [-] 
 column.particle_radius = 1.63e-3  # r_p [m]
 #Matlab code:  opt.particleRadius      = 0.325e-2 /2 = 0,001625; 
-column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]
-#column.film_diffusion = component_system.n_comp * [5e-5]  # k_f [m / s]
-#Matlab code: opt.filmDiffusion             = [5e-5 5e-5];
 
-column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
-#column.pore_diffusion = component_system.n_comp * [1.6e4]  # D_p [m² / s]
-#Matlab code: opt.diffusionParticle         = [1.6e4 1.6e4];
+column.film_diffusion = component_system.n_comp * [5e-5]  # k_f [m / s]
+column.pore_diffusion = component_system.n_comp * [1.6e4]  # D_p [m² / s]
 
 column.axial_dispersion = 3.81e-6  # D_ax [m² / s]
 #Matlab code: opt.dispersionColumn          = ones(1,opt.nZone) .* 3.8148e-6;
@@ -288,7 +277,7 @@ builder.switch_time = 1552
 process = builder.build_process()
 
 # %% [markdown]
-# The SMB process is simulated for 13 `cycles`. During this period, the **column switching** will have been performed 104 times and every column will have been at every possible position within the four zones 12 times. The `time integrator parameters` are set accourding to He et al., with the relative tolerance `reltol` set to a sensible value. <br>
+# The SMB process is simulated for 13 `cycles`. During this period, the **column switching** will have been performed 104 times and every column will have been at every possible position within the four zones 12 times. The `time integrator parameters` are set according to He et al., with the relative tolerance `reltol` set to a sensible value. <br>
 # The **extract** and **raffinate** outlet concentrations are plotted for the first 40 and eight switching times respectively.
 
 # %%
@@ -358,7 +347,7 @@ plt.show()
 # %% [markdown]
 # Component A (glucose, blue) is recovered in the raffinate and fructose (red) in the extract outlet. The establishment of the **cyclic steady state (CSS)** can be seen in the upper graphs. At around the 30th switching time, the concentration profiles during a switch period start to not change noticibly anymore.  
 #
-# To visualize the axial concentrations of every column at a timepoint during the CSS, the **bulk** concentrations are plotted at the end of the period before the 104th switch and at the start of the 13th cycle. The effect of a **column switch** can be observed as the local concentration profile is shifted to the column upstream of the current one by exactly half a zone.
+# To visualize the axial concentrations of every column at a timepoint during the CSS, the **bulk concentrations** are plotted at the end of the period before the 104th switch and at the start of the 13th cycle. The effect of a **column switch** can be observed as the local concentration profile is shifted to the column upstream of the current one by exactly half a zone.
 
 # %%
 from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
