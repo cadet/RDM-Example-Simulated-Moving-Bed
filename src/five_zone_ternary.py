@@ -118,11 +118,11 @@ component_system = ComponentSystem(['A', 'B', 'C'])
 # Binding Model
 binding_model = Linear(component_system)
 binding_model.is_kinetic = True
-mass_transfer = [1, 0.5, 0.1]
-#binding_model.adsorption_rate = [3.15, 7.40, 23.0]# Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
-binding_model.adsorption_rate = k_a
-#binding_model.desorption_rate = [1, 1, 1] # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
-binding_model.desorption_rate = k_d
+#mass_transfer = [1, 0.5, 0.1]
+binding_model.adsorption_rate = [3.15, 7.40, 23.0]# Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
+#binding_model.adsorption_rate = k_a
+binding_model.desorption_rate = [1, 1, 1] # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
+#binding_model.desorption_rate = k_d
 
 # Column
 column = GeneralRateModel(component_system, name='column')
@@ -134,12 +134,12 @@ column.particle_porosity = 1.0e-8  # ε_p [-]
 #Matlab code: opt.porosityParticle    = 0.00000001;   % e_p very small to ensure e_t = e_c  => would be 1.0e-8
 column.particle_radius = 1.50e-5  # r_p [m]
 
-column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]  
-#column.film_diffusion = [5.0e-5, 5.0e-5, 5.0e-5]
+#column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]  
+column.film_diffusion = [5.0e-5, 2.5e-5, 5.0e-5]
 #Matlab code: opt.filmDiffusion             = [5.0e-5, 2.5e-5, 5.0e-5];  % K_f   Componente B fits better with 5.0e-5
 
-column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
-#column.pore_diffusion = [1.6e4, 1.6e4, 1.6e4]
+#column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
+column.pore_diffusion = [1.6e4, 1.6e4, 1.6e4]
 #Matlab code: opt.diffusionParticle         = [1.6e4, 1.6e4, 1.6e4];  % D_p
 
 
@@ -308,6 +308,13 @@ ax3.set_ylim(0, 0.8)
 #ax3.set_xlim(0, 40)
 
 # %%
+class CarouselSolutionBulk(SolutionBase): 
+from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
+axial_conc = CarouselSolutionBulk(builder, simulation_results)
+_ = axial_conc.plot_at_time(t=200.01 * builder.switch_time) #, ax = _plot_solution_1D(ax = ) )
+_ = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
+
+# %%
 #class CarouselSolutionBulk(SolutionBase): 
 #from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
 #axial_conc = CarouselSolutionBulk(builder, simulation_results)
@@ -347,15 +354,15 @@ ax3.set_ylim(0, 0.8)
 
 
 # %% [markdown]
-# ```{figure} ./figures/ternary.png
-# :width: 800px
-# <div style="text-align: center">
-# (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, (a) Standard (at 200.01 steps), (b) Standard (at 200.99 steps), Blue line: component A, red line: component B, green line: component C.
-# <div>
-
-# %% [markdown]
 # ```{figure} ./figures/ternary_separation_Mun.png
 # :width: 800px
 # <div style="text-align: center">
-# (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, Operation mode: Standard mode (at 200.99 steps)
+# (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, Operation mode: Standard mode (at 200.99 steps), numerical simulations where the mass-transfer effects were minimized to approach an equilibrium (or ideal) state.
+# <div>
+
+# %% [markdown]
+# ```{figure} ./figures/ternary.png
+# :width: 800px
+# <div style="text-align: center">
+# (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, (a) Standard (at 200.01 steps), (b) Standard (at 200.99 steps), Blue line: component A, red line: component B, green line: component C.; numerical simulations where all the mass-transfer effects were considered in accordance with the information in Table 1. 
 # <div>
