@@ -56,5 +56,4 @@ The results will be stored in the `src` folder inside the `output` directory.
 ## Output Repository
 
 The output data for this case study can be found here:
-[Link to Output Repository](https://github.com/cadet/RDM-Example-Simulated-Moving-Bed-Output)The output repo can be found at:
-[output_repo](https://github.com/cadet/RDM-Example-Simulated-Moving-Bed-Output)
+[Link to Output Repository](https://github.com/cadet/RDM-Example-Simulated-Moving-Bed-Output)
