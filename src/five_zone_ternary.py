@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.2
+#       jupytext_version: 1.17.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -314,6 +314,7 @@ axial_conc = CarouselSolutionBulk(builder, simulation_results)
 _ = axial_conc.plot_at_time(t=200.01 * builder.switch_time) #, ax = _plot_solution_1D(ax = ) )
 _ = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
 
+
 # %% [markdown]
 # ```{figure} ./figures/ternary_separation_Mun.png
 # :width: 800px
@@ -322,16 +323,16 @@ _ = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
 # <div>
 
 # %%
-#class CarouselSolutionBulk(SolutionBase): 
-#from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
-#axial_conc = CarouselSolutionBulk(builder, simulation_results)
-#axial_conc.component_system
-#axial_conc.solution
-#axial_conc.axial_coordinates
-#axial_conc.time
-#simulation_results.solution
-#ax1, _ = axial_conc.plot_at_time(t=200.01 * builder.switch_time) #, ax = _plot_solution_1D(ax = ) )
-#ax2, _ = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
+class CarouselSolutionBulk(SolutionBase): 
+from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
+axial_conc = CarouselSolutionBulk(builder, simulation_results)
+axial_conc.component_system
+axial_conc.solution
+axial_conc.axial_coordinates
+axial_conc.time
+simulation_results.solution
+axial_conc.plot_at_time(t=200.01 * builder.switch_time) #, ax = _plot_solution_1D(ax = ) )
+axial_conc.plot_at_time(t=200.99 * builder.switch_time)
 
 # CADET output in mM = mol / m^3
 # mM -> g / L 
