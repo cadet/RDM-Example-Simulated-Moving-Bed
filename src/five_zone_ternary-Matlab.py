@@ -119,9 +119,9 @@ component_system = ComponentSystem(['A', 'B', 'C'])
 binding_model = Linear(component_system)
 binding_model.is_kinetic = True
 #mass_transfer = [1, 0.5, 0.1]
-binding_model.adsorption_rate = [3.15, 7.40*0.5, 23.0*0.1]  # Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
+binding_model.adsorption_rate = [3.15, 7.40, 23.0]  # Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
 #binding_model.adsorption_rate = k_a
-binding_model.desorption_rate = [1, 0.5, 0.1] # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
+binding_model.desorption_rate = [1, 1, 1] # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
 #binding_model.desorption_rate = k_d
 
 # Column
@@ -157,7 +157,8 @@ eluent.flow_rate = 2.34e-7  # Q_D [m^3 / s]  Matlab code: flowRate.desorbent  = 
 
 feed = Inlet(component_system, name='feed')
 #feed.c = [4.41e3, 3.75e3, 3.98e3]  # c_in [mol / m^3]  
-feed.c = [4.40, 3.74, 3.98]  # c_in [mol / m^3] 
+#feed.c = [4.40, 3.74, 3.98]  # c_in [mol / m^3] 
+feed.c = [4.401079144606257, 3.74195479718605, 3.9802275034357324]
 # Muns paper c + Matlab code M = [4.401079144606257, 3.74195479718605, 3.9802275034357324]
 feed.flow_rate = 1.67e-8  # Q_F [m^3 / s]  Matlab code: flowRate.feed       = 1.6667e-8;      % m^3/s
 
@@ -291,7 +292,6 @@ ax1.set_title("Raffinate")
 ax1.set_xlabel("Switches")
 ax1.set_ylabel("c [g / L]")
 ax1.set_ylim(0, 1)
-ax1.set_xlim(0,6)
 #ax1.set_xlim(0, 8)
 
 ax2.plot(t / builder.switch_time, ext_2)
@@ -307,8 +307,6 @@ ax3.set_xlabel("Switches")
 ax3.set_ylabel("c [g / L]")
 ax3.set_ylim(0, 0.8)
 #ax3.set_xlim(0, 40)
-
-# plot averages of every switch: raff(switch_time - 0.5*switch-time)
 
 # %%
 #class CarouselSolutionBulk(SolutionBase): 

@@ -172,7 +172,7 @@ component_system = ComponentSystem(['A', 'B'])
 
 # Binding Model
 binding_model = Linear(component_system)
-binding_model.is_kinetic = False
+binding_model.is_kinetic = True
 #binding_model.adsorption_rate = [0.54, 0.28]  # Henry_1 = 	0.54 = fructose; Henry_2 = 0.28 = glucose
 binding_model.adsorption_rate = [0.28, 0.54]
 # Matlab code: opt.KA = [0.28 0.54]; % [comp_A, comp_B], A for raffinate = glucose, B for extract = fructose
@@ -191,8 +191,8 @@ column.particle_porosity = 1.0e-5  # ε_p [-]
 column.particle_radius = 1.63e-3  # r_p [m]
 #Matlab code:  opt.particleRadius      = 0.325e-2 /2 = 0,001625; 
 
-column.film_diffusion = component_system.n_comp * [1]  # k_f [m / s]
-column.pore_diffusion = component_system.n_comp * [1]  # D_p [m² / s]
+column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]
+column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
 
 column.axial_dispersion = 3.81e-6  # D_ax [m² / s]
 #Matlab code: opt.dispersionColumn          = ones(1,opt.nZone) .* 3.8148e-6;
