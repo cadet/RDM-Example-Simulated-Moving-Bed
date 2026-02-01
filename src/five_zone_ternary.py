@@ -279,16 +279,15 @@ ext_1 = np.multiply(ext1_mM, molar_mass) * 1e-3
 ext_2 = np.multiply(ext2_mM, molar_mass) * 1e-3
 
 # %% [markdown]
-# [ 54121 x 3 ]
-#         ↓
-# [ 205 Blöcke à 264 x 3 ]
-#         ↓
-# [ 205 Mittelwerte x 3 ]
+# To compare the simulation results to those of Mun et al., the concentration of every component is averaged over one switching period. This results in a new average every 264s. As there are 5 columns that switch a total of 41 times, this results in 205 total average concentrations for every component. Dividing the total simulation time by the switch time yields the same number of steps for `n_averages`. This is done for the raffinate, extract 1 and extract 2 ports.
 #
-# We save the average concentration of every substance for every switching period. This results in a new average for every 264s. As there are 5 columns that switch a total of 41 times, this results in 205 total averages for every concentration. Dividing the total simulation time by the switch time yields the same number of steps for `n_averages`.
+#     np.shape() of concentration arrays during reshaping:
+#     (54121,3)
+#     (205,264,3)
+#     (205,264,3)
 
 # %%
-n_averages = int(len(raff) // builder.switch_time)  # 54121 // 264 = 205
+n_averages = int(len(raff) // builder.switch_time)  
 
 raff_average = (
     raff[: int(n_averages * builder.switch_time)]
@@ -305,10 +304,6 @@ ext2_average = (
     .reshape(n_averages, int(builder.switch_time), raff.shape[1])
     .mean(axis=1)
 )
-print(np.mean(raff[0:264*(0+1),], axis=0))
-print(np.mean(raff[204*264:264*(204+1),], axis=0))
-raff_average[-1:]
-
 
 # %%
 import matplotlib.pyplot as plt
@@ -342,11 +337,55 @@ ax3.set_ylim(0, 0.8)
 
 
 # %%
-#class CarouselSolutionBulk(SolutionBase): 
+# Axial concentrations in mM
 from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
 axial_conc = CarouselSolutionBulk(builder, simulation_results)
-_ = axial_conc.plot_at_time(t=200.01 * builder.switch_time) #, ax = _plot_solution_1D(ax = ) )
-_ = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
+before_switch = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
+after_switch = axial_conc.plot_at_time(t=200.01 * builder.switch_time)
+
+# Conversion of axial concentration plot from mM to g/L
+t = 200.01 * builder.switch_time
+n_cols = axial_conc.builder.n_columns
+
+fig, axs = plt.subplots(
+ncols=n_cols,
+figsize=(n_cols*4, 6),
+gridspec_kw=dict(wspace=0.0, hspace=0.0),
+sharey='row')
+t_i = np.where(t <= axial_conc.time)[0][0]
+
+x = axial_conc.axial_coordinates
+
+y_min_data = 0
+y_max_data = 0
+zone_counter = 0
+column_counter = 0
+_lines = []
+
+for position, ax in enumerate(axs):
+    col_index = axial_conc.builder.column_indices_at_time(t, position) 
+    y_data = axial_conc.solution[f'column_{col_index}'].bulk.solution[t_i, :]
+    y = np.multiply(y_data, molar_mass) * 1e-3
+    y_min_data = min(y_min_data, min(0, np.min(y)))
+    y_max_data = max(y_max_data, 1.1*np.max(y))
+
+    l = ax.plot(x, y)
+  
+    _lines.append(l)
+
+    zone = axial_conc.builder.zones[zone_counter]
+    if zone.n_columns > 1:
+        ax.set_title(f'{zone.name}, position {column_counter}')
+    else:
+        ax.set_title(f'{zone.name}')
+
+    if column_counter < (zone.n_columns - 1):
+        column_counter += 1
+    else:
+        zone_counter += 1
+        column_counter = 0
+ax.set_ylabel("c(g/L)")        
+np.shape(y)
 
 # %% [markdown]
 # ```{figure} ./figures/ternary_separation_Mun.png
@@ -354,45 +393,6 @@ _ = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
 # <div style="text-align: center">
 # (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, Operation mode: Standard mode (at 200.99 steps), numerical simulations where the mass-transfer effects were minimized to approach an equilibrium (or ideal) state.
 # <div>
-
-# %%
-#class CarouselSolutionBulk(SolutionBase)
-from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
-axial_conc = CarouselSolutionBulk(builder, simulation_results)
-axial_conc.component_system
-axial_conc.solution
-axial_conc.axial_coordinates
-axial_conc.time
-simulation_results.solution
-axial_conc.plot_at_time(t=200.01 * builder.switch_time) #, ax = _plot_solution_1D(ax = ) )
-axial_conc.plot_at_time(t=200.99 * builder.switch_time)
-
-# CADET output in mM = mol / m^3
-# mM -> g / L 
-
-# component C correct 
-
-
-# %%
-#dir(ax1[0])
-#fig = ax1[0].figure  # Hole die Figure vom Axes-Objekt
-    # (In vielen Umgebungen funktioniert das, aber nicht überall)
-   # Funktioniert global für aktive Figuren
-
-
-#fig = ax1[0].figure
-#fig.show()
-#ax = ax1[0]
-#ax.set_title("zone_I")
-#plt.show()
-
-
-#print(ax.get_title())        # → "zone_I"
-#print(ax.get_xlim())         # → z. B. (0.0, 1.0)
-#print(dir(ax1[0]))               # → alle Attribute und Methoden
-#ax1[0].plot()
-#print(ax1[0].lines)  # zeigt alle Linien-Objekte
-
 
 # %% [markdown]
 # ```{figure} ./figures/ternary.png
