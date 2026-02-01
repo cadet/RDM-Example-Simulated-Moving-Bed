@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.1
+#       jupytext_version: 1.17.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -195,11 +195,11 @@ extract_2 = Outlet(component_system, name = 'extract_2')
 raffinate = Outlet(component_system, name = 'raffinate')
 from CADETProcess.modelBuilder import SerialZone
 
-zone_I = SerialZone(component_system, 'zone_I', n_columns=1, valve_dead_volume=1e-9)
-zone_II = SerialZone(component_system, 'zone_II', n_columns=1, valve_dead_volume=1e-9)
-zone_III = SerialZone(component_system, 'zone_III', n_columns=1, valve_dead_volume=1e-9)
-zone_IV = SerialZone(component_system, 'zone_IV', n_columns=1, valve_dead_volume=1e-9)
-zone_V = SerialZone(component_system, 'zone_V', n_columns=1, valve_dead_volume=1e-9)
+zone_I = SerialZone(component_system, 'zone_I', n_columns=1, valve_parameters={"valve_dead_volume":1e-9})
+zone_II = SerialZone(component_system, 'zone_II', n_columns=1, valve_parameters={"valve_dead_volume":1e-9})
+zone_III = SerialZone(component_system, 'zone_III', n_columns=1, valve_parameters={"valve_dead_volume":1e-9})
+zone_IV = SerialZone(component_system, 'zone_IV', n_columns=1, valve_parameters={"valve_dead_volume":1e-9})
+zone_V = SerialZone(component_system, 'zone_V', n_columns=1, valve_parameters={"valve_dead_volume":1e-9})
 
 from CADETProcess.modelBuilder import CarouselBuilder
 
@@ -278,37 +278,68 @@ raff = np.multiply(raff_mM, molar_mass) * 1e-3
 ext_1 = np.multiply(ext1_mM, molar_mass) * 1e-3
 ext_2 = np.multiply(ext2_mM, molar_mass) * 1e-3
 
+# %% [markdown]
+# [ 54121 x 3 ]
+#         ↓
+# [ 205 Blöcke à 264 x 3 ]
+#         ↓
+# [ 205 Mittelwerte x 3 ]
+#
+# We save the average concentration of every substance for every switching period. This results in a new average for every 264s. As there are 5 columns that switch a total of 41 times, this results in 205 total averages for every concentration. Dividing the total simulation time by the switch time yields the same number of steps for `n_averages`.
+
+# %%
+n_averages = int(len(raff) // builder.switch_time)  # 54121 // 264 = 205
+
+raff_average = (
+    raff[: int(n_averages * builder.switch_time)]
+    .reshape(n_averages, int(builder.switch_time), raff.shape[1])
+    .mean(axis=1)
+)
+ext1_average = (
+    ext_1[: int(n_averages * builder.switch_time)]
+    .reshape(n_averages, int(builder.switch_time), raff.shape[1])
+    .mean(axis=1)
+)
+ext2_average = (
+    ext_2[: int(n_averages * builder.switch_time)]
+    .reshape(n_averages, int(builder.switch_time), raff.shape[1])
+    .mean(axis=1)
+)
+print(np.mean(raff[0:264*(0+1),], axis=0))
+print(np.mean(raff[204*264:264*(204+1),], axis=0))
+raff_average[-1:]
+
+
 # %%
 import matplotlib.pyplot as plt
+
+n_steps = range(0,205)
+#n_steps = int(len(t)/builder.switch_time)
+#n_steps = n_columns * n_cycles
 
 fig, axs = plt.subplots(2, 2, figsize=(20, 17))
 ax1 = axs[0, 0]  # Raff
 ax2 = axs[0, 1]  # Ext2
 ax3 = axs[1, 0]  # Ext1
 
-ax1.plot(t / builder.switch_time, raff)
+ax1.plot(n_steps, raff_average)
 ax1.set_title("Raffinate")
-ax1.set_xlabel("Switches")
+ax1.set_xlabel("Step number")
 ax1.set_ylabel("c [g / L]")
-ax1.set_ylim(0, 1)
-ax1.set_xlim(0,6)
-#ax1.set_xlim(0, 8)
+ax1.set_ylim(0, 0.8)
 
-ax2.plot(t / builder.switch_time, ext_2)
+ax2.plot(n_steps, ext2_average)
 ax2.set_title("Extract 2")
-ax2.set_xlabel("Switches")
+ax2.set_xlabel("Step number")
 ax2.set_ylabel("c [g / L]")
 ax2.set_ylim(0, 0.8)
-#ax2.set_xlim(0, 8)
 
-ax3.plot(t / builder.switch_time, ext_1)
+ax3.plot(n_steps, ext1_average)
 ax3.set_title("Extract 1")
-ax3.set_xlabel("Switches")
+ax3.set_xlabel("Step number")
 ax3.set_ylabel("c [g / L]")
 ax3.set_ylim(0, 0.8)
-#ax3.set_xlim(0, 40)
 
-# plot averages of every switch: raff(switch_time - 0.5*switch-time)
 
 # %%
 #class CarouselSolutionBulk(SolutionBase): 

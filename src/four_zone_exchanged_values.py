@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.1
+#       jupytext_version: 1.17.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -233,10 +233,10 @@ extract = Outlet(component_system, name='extract')
 raffinate = Outlet(component_system, name='raffinate')
 from CADETProcess.modelBuilder import SerialZone
 
-zone_I = SerialZone(component_system, 'zone_I', n_columns = 2, valve_dead_volume=1e-9)
-zone_II = SerialZone(component_system, 'zone_II', n_columns = 2, valve_dead_volume=1e-9)
-zone_III = SerialZone(component_system, 'zone_III', n_columns = 2, valve_dead_volume=1e-9)
-zone_IV = SerialZone(component_system, 'zone_IV', n_columns = 2, valve_dead_volume=1e-9)
+zone_I = SerialZone(component_system, 'zone_I', n_columns = 2, valve_parameters={"valve_dead_volume":1e-9})
+zone_II = SerialZone(component_system, 'zone_II', n_columns = 2, valve_parameters={"valve_dead_volume":1e-9})
+zone_III = SerialZone(component_system, 'zone_III', n_columns = 2, valve_parameters={"valve_dead_volume":1e-9})
+zone_IV = SerialZone(component_system, 'zone_IV', n_columns = 2, valve_parameters={"valve_dead_volume":1e-9})
 
 from CADETProcess.modelBuilder import CarouselBuilder
 
