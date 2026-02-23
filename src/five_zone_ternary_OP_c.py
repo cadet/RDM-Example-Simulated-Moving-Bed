@@ -18,7 +18,7 @@
 # # Ternary Separation
 
 # %% [markdown]
-# Case study III examines the separation of the three components 2’-deoxycytidine `A`, 2’-deoxyguanosine `B` and 2’-deoxyadenosine `C`. A standard five-zone SMB system with two extract ports and without partial-feeding or partial-closing is assumed.
+# The following case study examines the separation of the three components 2’-deoxycytidine `A`, 2’-deoxyguanosine `B` and 2’-deoxyadenosine `C`. A standard five-zone SMB system with two extract ports and without partial-feeding or partial-closing is assumed.
 #
 # This experiment was originally simulated and published by S. Mun in "Improving performance of a five-zone simulated moving bed chromatography for ternary separation by simultaneous use of partial-feeding and partial-closing of the product port in charge of collecting the intermediate-affinity solute molecules" (Sungyong Mun, Journal of Chromatography A 2011;  1218(44):8060-8074) <br> https://doi.org/10.1016/j.chroma.2011.09.015.
 #
@@ -31,76 +31,10 @@
 # <div>
 
 # %% [markdown]
-# (Ternary separation with a five zone system is particularly effective when the target component is present in much higher abundance than the more strongly retained component.)
+# Ternary separation with a five zone system is particularly effective when the target component is present in much higher abundance than the more strongly retained component. The Henry coefficients of the three components are made sure to be sufficiently different to assure their separation.
 
 # %% [markdown]
-# ## Differences in Parameters He's paper / He's Matlab code / Mun's paper
-#    
-#     1.) Feed concentrations: 
-#     He paper text and He table: cF = 1.0 g/cm^3 = 1.0 g/mL
-#     original Mun paper: Mun Table 1 cF = 1.0 g/L => 1.0e3 g/cm^3
-#
-#     Matlab code:     
-#     concentrationFeed 	= [1.0, 1.0, 1.0];    % g/cm^3 [concentration_compA, concentration_compB]  => wrong unit 
-#     opt.molMass         = [227.217, 267.24, 251.24192]; % The molar mass of each components g/mol
-#     
-#     He's paper: feed.c = [4.41e3, 3.75e3, 3.98e3]  # c_in [mol / m^3]  
-#     Muns paper c + Matlab code M = [4.401079144606257, 3.74195479718605, 3.9802275034357324]  [mol / m^3]
-#
-#     2.) Particle Porosity
-#     He Paper: column.particle_porosity = 1.0e-5  # ε_p [-] 
-#     Matlab code: opt.porosityParticle    = 0.00000001;   % e_p very small to ensure e_t = e_c  => would be 1.0e-8
-#
-#     3.) Film Diffusion:
-#     He Paper: column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]  
-#     Matlab code: opt.filmDiffusion             = [5.0e-5, 2.5e-5, 5.0e-5];  % K_f
-#
-#     4.) Pore Diffusion: 
-#     He Paper: column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
-#     Matlab code: opt.diffusionParticle         = [1.6e4, 1.6e4, 1.6e4];  % D_p
-#
-# # volumetric flow rates, time checked
-#
-#     % Purities archieved at operation point a for components A,B,C: 99.62  71.16	96.78
-#     flowRate.recycle    = 2.9230e-7;      % m^3/s  == QI, not QIV or QV!
-#
-# # Parameters missing
-#     opt.tolIter         = 1e-4;  % tolerance of the SMB stopping criterion
-#     opt.nMaxIter        = 1000;  % the maximum iteration step in SMB
-#     opt.nThreads        = 8;     % threads of CPU, up to your computer
-#
-#     opt.timePoints      = 1000;  % the observed time-points
-#     -> For Feed concentration setup
-#     Feed.time = linspace(0, opt.switch, opt.timePoints);  # 1000 evaluated points during 1 switching time
-#     Feed.concentration = zeros(length(Feed.time), opt.nComponents);
-#
-#     
-#     opt.Purity_extract1_limit   = 0.95;  % used for constructing constraints
-#     opt.Purity_extract2_limit   = 0.65;  % used for constructing constraints
-#     opt.Purity_raffinate_limit  = 0.99;  % used for constructing constraints
-#     opt.Penalty_factor          = 10;    % penalty factor in penalty function
-#
-#     opt.yLim            = max(concentrationFeed ./ opt.molMass) * 1.1; % the magnitude for plotting
-#
-#
-#  #   Capable of placing a CSTR or DPFR apparatues before and after the calculated column
-#
-#     Continuous Stirred Tank Reactor
-#     opt.enable_CSTR = false;
-#     opt.CSTR_length = 0.01;
-#
-#     Dispersive Plug Flow Reactor
-#     opt.enable_DPFR = false;
-#
-#     opt.DPFR_length = 0.0066;
-#     opt.DPFR_nCells = 50;
-#
-#     opt.DPFR_velocity   = 0.00315;
-#     opt.DPFR_dispersion = 2.5e-20;
-#
-
-# %% [markdown]
-# The following process parameters are taken from Table 1 (Mun). The feed concentrations `feed.c` (mol/m^3) are calculated based on the following molar masses for each component A-C [227.22, 267.24, 251.24]. The axial dispersion is assumed to be a typical value (Table 1, He et al.). The mass transfer follows a linear binding model, in which the `adsorption_rate` is given as the product of the `mass-transfer coefficient` and the `Henry constant` for each component. The `desorption_rate` is equal to the mass-transfer coefficient of each component (Equation 9b, 9j; Mun). 
+# The following process parameters are taken from Table 1 (Mun). The feed concentrations `feed.c` (mol/m^3) are calculated based on the respective `molar_mass` for each component and a feed of 1 g/L. The axial dispersion is not explicitly given in the paper. A small numerical value is chosen as to not inhibit the elution, the effect of the axial dispersion is negligible. <br>The mass transfer follows a linear binding model, in which the `adsorption_rate` is given as the product of the `mass-transfer coefficient` and the `Henry constant` for each component. The `desorption_rate` is equal to the mass-transfer coefficient of each component (Equation 9b, 9j; Mun). 
 #
 
 # %%
@@ -124,22 +58,22 @@ column.binding_model = binding_model
 column.length = 0.150  # L_c [m]
 column.diameter = 1.0e-2  # d_c [m]
 column.total_porosity = 0.80  # ε [-]
-column.axial_dispersion = 4e-6  # E_b [m² / s]
+column.axial_dispersion = 1e-7  # E_b [m² / s]
 #column.discretization.npar = 1  # N_r
 column.discretization.ncol = 40  # N_z
 column.solution_recorder.write_solution_bulk = True
 
 eluent = Inlet(component_system, name='eluent')
 eluent.c = [0, 0, 0]  # c_in_D [mol / m^3]
-eluent.flow_rate = 2.34e-7  # Q_D [m^3 / s] operating point a
+eluent.flow_rate = 1.908e-7  # Q_des [m^3 / s] operating point c
 
 feed = Inlet(component_system, name='feed')
 feed.c = [4.40, 3.74, 3.98]  # c_in [mol / m^3] 
 # Muns paper c + Matlab code M = [4.401079144606257, 3.74195479718605, 3.9802275034357324]
-feed.flow_rate = 1.67e-8  # Q_F [m^3 / s] 
+feed.flow_rate = 1.67e-8  # Q_feed [m^3 / s] 
 
 # %% [markdown]
-# All zones are connected to each other in series `SerialZone`. The flow rates are taken from Table 2 (Mun) and the fractions of the flow going into extract port I `w_e1`, extract port 2 `w_e2` and the raffinate port `w_r` are calculated. 
+# All zones are connected to each other in series `SerialZone`. The flow rates are taken from Table 3, Point c (Mun) and the fractions of the flow going into extract port I `w_e1`, extract port 2 `w_e2` and the raffinate port `w_r` are calculated. 
 # ```
 # zone_I -> extract_1 + zone_II
 # Q_I = Q_E1 + Q_II 
@@ -150,21 +84,21 @@ feed.flow_rate = 1.67e-8  # Q_F [m^3 / s]
 # zoneIV -> raffinate + zone_V
 # Q_IV = Q_R + Q_V 
 #
-# w_e1 = Q_E1 / Q_I = 0.6418
-# w_e2 = Q_E2 / Q_II = 0.443
-# w_r = Q_R / Q_IV = 0.224
+# w_e1 = Q_E1 / Q_I = 0.595
+# w_e2 = Q_E2 / Q_II = 0.395
+# w_r = Q_R / Q_IV = 0.368
 
 # %%
-Q_R = 1.009  # Operating point a, Table 3 Mun et al.
-Q_E1 = 11.256  # Operating point a, Table 3
-Q_E2 = 2.782  
-Q_I = 17.538
-Q_II = 6.282
+Q_R = 1.655  # Operating point c, Table 3 Mun et al.
+Q_E1 = 8.509  # Operating point c, Table 3
+Q_E2 = 2.281  
+Q_I = 14.290
+Q_II = 5.781
 Q_IV = 4.500
 
 Q_E1 / Q_I 
 Q_E2 / Q_II 
-Q_R / Q_IV 
+#Q_R / Q_IV 
 
 # %%
 extract_1 = Outlet(component_system, name = 'extract_1')
@@ -199,12 +133,12 @@ builder.add_connection(eluent, zone_I)
 
 builder.add_connection(zone_I, extract_1)
 builder.add_connection(zone_I, zone_II)
-w_e1 = 0.642
+w_e1 = 0.595
 builder.set_output_state(zone_I, [w_e1, 1 - w_e1])
 
 builder.add_connection(zone_II, extract_2)
 builder.add_connection(zone_II, zone_III)
-w_e2 = 0.443
+w_e2 = 0.395
 builder.set_output_state(zone_II, [w_e2, 1 - w_e2])
 
 builder.add_connection(zone_III, zone_IV)
@@ -212,28 +146,24 @@ builder.add_connection(zone_III, zone_IV)
 builder.add_connection(feed, zone_IV)
 builder.add_connection(zone_IV, raffinate)
 builder.add_connection(zone_IV, zone_V)
-w_r = 0.224
+w_r = 0.368
 builder.set_output_state(zone_IV, [w_r, 1 - w_r])
 
 builder.add_connection(zone_V, zone_I)
 
-builder.switch_time = 264  
+builder.switch_time = 324  
 
 process = builder.build_process()
 
 # %%
 from CADETProcess.simulator import Cadet
 process_simulator = Cadet()
-#process_simulator.evaluate_stationarity = True
-process_simulator.n_cycles = 41  #200.99 steps = 200.99 switch times -> 40.198
+process_simulator.n_cycles = 41  # 200.99 switch times -> 40.198 cycles for 5 switches per cycle
 process_simulator.use_dll = True
-
 process_simulator.time_integrator_parameters.abstol = 1e-10
-process_simulator.time_integrator_parameters.reltol = 1e-6  # Not in Matlab code!, not in Klatt paper 
+process_simulator.time_integrator_parameters.reltol = 1e-6  
 process_simulator.time_integrator_parameters.init_step_size = 1e-14
 process_simulator.time_integrator_parameters.max_step_size = 5e6
-
-#process_simulator.time_resolution = builder.switch_time / 1000  # default value is 1 second.  Matlab code: Feed.time = linspace(0, opt.switch, opt.timePoints);
 
 simulation_results = process_simulator.simulate(process)
 
@@ -245,18 +175,13 @@ ext2_mM = simulation_results.solution.extract_2.inlet.solution
 t = simulation_results.time_complete
 
 # Transformation from mM to g/L
-molar_mass = [227.22, 267.24, 251.24]  # molar mass of each component [227.22, 
+molar_mass = [227.22, 267.24, 251.24]  
 raff = np.multiply(raff_mM, molar_mass) * 1e-3
 ext_1 = np.multiply(ext1_mM, molar_mass) * 1e-3
 ext_2 = np.multiply(ext2_mM, molar_mass) * 1e-3
 
 # %% [markdown]
-# To compare the simulation results to those of Mun et al., the concentration of every component is averaged over one switching period. This results in a new average every 264s. As there are 5 columns that switch a total of 41 times, this results in 205 total average concentrations for every component. Dividing the total simulation time by the switch time yields the same number of 205 steps for `n_averages`. This is done for the raffinate, extract 1 and extract 2 ports.
-#
-#     np.shape() of concentration arrays during reshaping:
-#     (54121,3)
-#     (205,264,3)
-#     (205,264,3)
+# To compare the simulation results to those of Mun, the concentration of every component is averaged over one switching period. This results in a new average every 324s. As there are 5 columns that switch a total of 41 times, this results in 205 total average concentrations for every component. Dividing the total simulation time by the switch time yields the same number of 205 steps for `n_averages`. The averaging is done for the raffinate, extract 1 and extract 2 ports. The following plot reproduces Fig. 11 a,b,c (Mun). 
 
 # %%
 n_averages = int(len(raff) // builder.switch_time)  
@@ -308,8 +233,11 @@ ax3.set_ylabel("c [g / L]")
 ax3.set_ylim(0, 0.8)
 
 
+# %% [markdown]
+# The axial concentration profiles of each component in every zone of the SMB can be plotted for a desired time point within the seperation process. The following graph depicts the axial concentrations after the CSS is reached at a point before a switching time (200.99 steps) and after a switch (200.01 steps). This can be archieved by using the function already implemented in the `CarouselSolutionBulk` class (see four_zone_binary). To compare the results to Fig. 10 a,b of Mun's study, the concentrations are converted from mM to g/L and plotted manually in the following code.
+
 # %%
-# Axial concentrations in mM
+# Axial concentrations
 from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
 axial_conc = CarouselSolutionBulk(builder, simulation_results)
 
@@ -340,7 +268,7 @@ for t in plotting_time:
         y_min_data = min(y_min_data, min(0, np.min(y)))
         y_max_data = max(y_max_data, 1.1*np.max(y))
         if position == 0:
-            ax.set_ylabel("c(g/L)")
+            ax.set_ylabel("c [g/L]")
         if position == 2:
             ax.set_xlabel(f'axial coordinates at {t/builder.switch_time} steps')
         l = ax.plot(x, y)
@@ -352,19 +280,5 @@ for t in plotting_time:
 
         zone_counter += 1
         column_counter = 0
-
-# %% [markdown]
-# ```{figure} ./figures/ternary.png
-# :width: 800px
-# <div style="text-align: center">
-# (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, (a) Standard (at 200.01 steps), (b) Standard (at 200.99 steps), Blue line: component A, red line: component B, green line: component C.; numerical simulations where all the mass-transfer effects were considered in accordance with the information in Table 1. 
-# <div>
-
-# %% [markdown]
-# ```{figure} ./figures/ternary_separation_Mun.png
-# :width: 800px
-# <div style="text-align: center">
-# (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, Operation mode: Standard mode (at 200.99 steps), numerical simulations where the mass-transfer effects were minimized to approach an equilibrium (or ideal) state.
-# <div>
 
 # %%

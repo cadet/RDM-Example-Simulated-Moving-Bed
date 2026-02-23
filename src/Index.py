@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.2
+#       jupytext_version: 1.19.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -25,19 +25,20 @@
 # %% [markdown]
 # ## Theoretical background
 #
-# Continuous processes generally have many benefits over batch processes, like higher efficiency and throughput. However, a truly continuous chromatography process is not practically feasable. This so called **true moving bed chromatography** would entail the solid phase of the chromatography column (the bed) moving in the opposite direction to the mobile phase. This would induce the local separation of components in the feed solution based on their column binding behaviour. Those components could then by retrieved by different outlet streams located upstream and downstream of the feed inlet. 
+# Continuous processes generally have many benefits over batch processes, like higher efficiency and throughput. However, a truly continuous process in chromatography is not practically feasable. <br>
+# This so called **true moving bed chromatography** would entail the solid phase of the chromatography column (the bed) moving in the opposite direction to the mobile phase. This would induce the local separation of components in the feed solution based on their column binding behaviour. Those components could then by retrieved by different outlet streams located upstream and downstream of the feed inlet. 
 #
-# ```{figure} ./figures/true_MB.png
+# ```{figure} ./figures/true_moving_bed_chr.jpg
 # :width: 400px
 # <div style="text-align: center">
 #
-# Place-holder graphic from: [Link to Youtube Video](https://www.youtube.com/watch?v=xhhJxb48tgc) 
+# Graphic inspired by [Youtube Video by orochemtech](https://www.youtube.com/watch?v=xhhJxb48tgc) 
 # <div>
 #
 #
 
 # %% [markdown]
-# **Simulated Moving Bed Chromatography** is a way to approach such a continuous process in practice. This is realized by having multiple chromatography columns connected to each other in a carousel. By periodically switching the inlet and outlet valves connected to the columns ("column switching") the movement of the solid phase can be mimicked. 
+# **Simulated Moving Bed Chromatography** is a method to approach such a continuous process in practice. This is realized by having multiple chromatography columns connected to each other in a carousel. By periodically switching the inlet and outlet valves connected to the columns (***"column switching"***) the movement of the solid phase can be mimicked. 
 #
 # A general SMB system contains four different external units connected to the columns:
 # 1. Feed (Inlet): Component mixture
@@ -57,7 +58,7 @@
 
 # %% [markdown]
 # ## Content
-# In their study He et al. examined five different cases of SMB processes. The following example reproduces case study 1, a four-zone binary separation with eight columns and case study 3, a five-zone ternary separation with five columns. 
+# The following two case studies simulate a binary separation using a four-zone SMB system and a ternary separation using a five-zone SMB system. 
 #
 # ```{toctree}
 # :maxdepth: 1
