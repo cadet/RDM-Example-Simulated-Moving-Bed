@@ -118,34 +118,28 @@ binding_model.is_kinetic = True
 binding_model.adsorption_rate = [3.15, 7.40*0.5, 23.0*0.1]  # k_a = apkm * H [1/s]
 binding_model.desorption_rate = [1, 0.5, 0.1]  # kd = apkm [1/s]
 
-
 # Column
-#class CADETProcess.processModel.(total_porosity, _q, length, diameter, axial_dispersion,
- #                                                           flow_direction, c, name)
 column = LumpedRateModelWithoutPores(component_system, name='column')
 column.binding_model = binding_model
-column.length = 0.150 # L [m]
+column.length = 0.150  # L [m]
 column.diameter = 1.0e-2  # d [m]
 column.total_porosity = 0.80  # ε_c [-]
-column.axial_dispersion = 3.81e-5  # D_ax [m² / s  #Matlab code: 3.8148e-10;
+column.axial_dispersion = 4e-6  # D_ax [m² / s]
 #column.discretization.npar = 1  # N_r
 column.discretization.ncol = 40  # N_z
 column.solution_recorder.write_solution_bulk = True
 
 eluent = Inlet(component_system, name='eluent')
 eluent.c = [0, 0, 0]  # c_in_D [mol / m^3]
-eluent.flow_rate = 2.34e-7  # Q_D [m^3 / s]  Matlab code: flowRate.desorbent  = 2.3412e-7;      % m^3/s
-
-
+eluent.flow_rate = 2.34e-7  # Q_D [m^3 / s] 
 
 feed = Inlet(component_system, name='feed')
-#feed.c = [4.41e3, 3.75e3, 3.98e3]  # c_in [mol / m^3]  
 feed.c = [4.40, 3.74, 3.98]  # c_in [mol / m^3] 
 # Muns paper c + Matlab code M = [4.401079144606257, 3.74195479718605, 3.9802275034357324]
-feed.flow_rate = 1.67e-8  # Q_F [m^3 / s]  Matlab code: flowRate.feed       = 1.6667e-8;      % m^3/s
+feed.flow_rate = 1.67e-8  # Q_F [m^3 / s] 
 
 # %% [markdown]
-# All zones are connected to each other in series `SerialZone`. The flow rates are taken from Table 2 (Mun at al.) and the fractions of the flow going into extract port I `w_e1`, extract port 2 `w_e2` and the raffinate port `w_r` are calculated. 
+# All zones are connected to each other in series `SerialZone`. The flow rates are taken from Table 2 (Mun) and the fractions of the flow going into extract port I `w_e1`, extract port 2 `w_e2` and the raffinate port `w_r` are calculated. 
 # ```
 # zone_I -> extract_1 + zone_II
 # Q_I = Q_E1 + Q_II 
@@ -251,7 +245,7 @@ ext2_mM = simulation_results.solution.extract_2.inlet.solution
 t = simulation_results.time_complete
 
 # Transformation from mM to g/L
-molar_mass = [227.217, 267.24, 251.24192]  # molar mass of each component
+molar_mass = [227.22, 267.24, 251.24]  # molar mass of each component [227.22, 
 raff = np.multiply(raff_mM, molar_mass) * 1e-3
 ext_1 = np.multiply(ext1_mM, molar_mass) * 1e-3
 ext_2 = np.multiply(ext2_mM, molar_mass) * 1e-3
@@ -318,52 +312,46 @@ ax3.set_ylim(0, 0.8)
 # Axial concentrations in mM
 from CADETProcess.modelBuilder.carouselBuilder import CarouselSolutionBulk
 axial_conc = CarouselSolutionBulk(builder, simulation_results)
-before_switch = axial_conc.plot_at_time(t=200.99 * builder.switch_time)
-after_switch = axial_conc.plot_at_time(t=200.01 * builder.switch_time)
 
-# Conversion of axial concentration plot from mM to g/L
-t = 200.01 * builder.switch_time
+plotting_time = [200.01*builder.switch_time, 200.99*builder.switch_time,] 
 n_cols = axial_conc.builder.n_columns
-
-fig, axs = plt.subplots(
-ncols=n_cols,
-figsize=(n_cols*4, 6),
-gridspec_kw=dict(wspace=0.0, hspace=0.0),
-sharey='row')
-t_i = np.where(t <= axial_conc.time)[0][0]
-
 x = axial_conc.axial_coordinates
 
-y_min_data = 0
-y_max_data = 0
-zone_counter = 0
-column_counter = 0
-_lines = []
+# Conversion of axial concentration plot from mM to g/L
+for t in plotting_time:
+    t_i = np.where(t <= axial_conc.time)[0][0]
+    
+    y_min_data = 0
+    y_max_data = 0
+    zone_counter = 0
+    column_counter = 0
+    _lines = []
+    
+    fig, axs = plt.subplots(
+    ncols=n_cols,
+    figsize=(n_cols*4, 6),
+    gridspec_kw=dict(wspace=0.0, hspace=0.0),
+    sharey='row')
 
-for position, ax in enumerate(axs):
-    col_index = axial_conc.builder.column_indices_at_time(t, position) 
-    y_data = axial_conc.solution[f'column_{col_index}'].bulk.solution[t_i, :]
-    y = np.multiply(y_data, molar_mass) * 1e-3
-    y_min_data = min(y_min_data, min(0, np.min(y)))
-    y_max_data = max(y_max_data, 1.1*np.max(y))
-
-    l = ax.plot(x, y)
-  
-    _lines.append(l)
-
-    zone = axial_conc.builder.zones[zone_counter]
-    if zone.n_columns > 1:
-        ax.set_title(f'{zone.name}, position {column_counter}')
-    else:
+    for position, ax in enumerate(axs):
+        col_index = axial_conc.builder.column_indices_at_time(t, position) 
+        y_data = axial_conc.solution[f'column_{col_index}'].bulk.solution[t_i, :]
+        y = np.multiply(y_data, molar_mass) * 1e-3
+        y_min_data = min(y_min_data, min(0, np.min(y)))
+        y_max_data = max(y_max_data, 1.1*np.max(y))
+        if position == 0:
+            ax.set_ylabel("c(g/L)")
+        if position == 2:
+            ax.set_xlabel(f'axial coordinates at {t/builder.switch_time} steps')
+        l = ax.plot(x, y)
+      
+        _lines.append(l)
+    
+        zone = axial_conc.builder.zones[zone_counter]
         ax.set_title(f'{zone.name}')
 
-    if column_counter < (zone.n_columns - 1):
-        column_counter += 1
-    else:
         zone_counter += 1
         column_counter = 0
-ax.set_ylabel("c(g/L)")        
-np.shape(y)
 
 # %% [markdown]
 # ```{figure} ./figures/ternary.png
