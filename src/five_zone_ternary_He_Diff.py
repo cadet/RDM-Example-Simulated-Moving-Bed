@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.1
+#       jupytext_version: 1.17.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -37,12 +37,12 @@
 # ## Differences in Parameters He's paper / He's Matlab code / Mun's paper
 #    
 #     1.) Feed concentrations: 
-#     He paper text and He table: cF = 1.0 g/cm^3 = 1.0 g/mL
+#     He paper text and He table: cF = 1.0 g/cm^-3 = 1.0 g/mL
 #     original Mun paper: Mun Table 1 cF = 1.0 g/L => 1.0e3 g/cm^3
-#
+#     feed concentrations in He paper are too small
 #     Matlab code:     
 #     concentrationFeed 	= [1.0, 1.0, 1.0];    % g/cm^3 [concentration_compA, concentration_compB]  => wrong unit 
-#     opt.molMass         = [227.217, 267.24, 251.24192]; % The molar mass of each components g/mol
+#     opt.molMass         = [227.217, 267.24, 251.24192]; % The molar mass of each components
 #     
 #     He's paper: feed.c = [4.41e3, 3.75e3, 3.98e3]  # c_in [mol / m^3]  
 #     Muns paper c + Matlab code M = [4.401079144606257, 3.74195479718605, 3.9802275034357324]  [mol / m^3]
@@ -108,10 +108,6 @@ arr2 = np.divide([1, 1, 1], mass_transfer)
 k_a = [float(x) for x in arr1]
 k_d = [float(x) for x in arr2]
 
-# %% [markdown]
-# The following process parameters are taken from Table 1 Case III (He et al.). In variance with He's publication, the feed concentrations `feed.c` (mol/m^3) of all three components are not calculated based on a feed of 1.0 g/cm^3 and the corresponding molar masses, but on 1.0 g/L as stated in the original paper by Mun et al. (Table 1). The numerical values used for the pore diffusion and film diffusion are exchanged in comparison to the statements of He et al.
-#
-
 # %%
 from CADETProcess.processModel import ComponentSystem
 from CADETProcess.processModel import Linear
@@ -144,12 +140,12 @@ column.particle_porosity = 1.0e-8  # ε_p [-]
 #Matlab code: opt.porosityParticle    = 0.00000001;   % e_p very small to ensure e_t = e_c  => would be 1.0e-8
 column.particle_radius = 1.50e-5  # r_p [m]
 
-#column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]  
-column.film_diffusion = [5.0e-7, 5.0e-7, 5.0e-7]
+column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]  
+#column.film_diffusion = [5.0e-5, 2.5e-5, 5.0e-5]
 #Matlab code: opt.filmDiffusion             = [5.0e-5, 2.5e-5, 5.0e-5];  % K_f   Componente B fits better with 5.0e-5
 
-#column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
-column.pore_diffusion = [1.6e4, 1.6e4, 1.6e4]
+column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
+#column.pore_diffusion = [1.6e4, 1.6e4, 1.6e4]
 #Matlab code: opt.diffusionParticle         = [1.6e4, 1.6e4, 1.6e4];  % D_p
 
 
@@ -188,12 +184,12 @@ feed.flow_rate = 1.67e-8  # Q_F [m^3 / s]  Matlab code: flowRate.feed       = 1.
 # w_r = Q_R / Q_IV = 0.224
 
 # %%
-Q_R = 1.68e-8  # Operating point a, Table 3 Mun et al.
-Q_E = 1.88e-7  # Operating point a, Table 3
-Q_E2 = 4.64e-8  
-Q_I = 2.92e-7
-Q_II = 1.05e-7
-Q_IV =7.50e-8
+#Q_R = 1.68e-8  # Operating point a, Table 3 Mun et al.
+#Q_E = 1.88e-7  # Operating point a, Table 3
+#Q_E2 = 4.64e-8  
+#Q_I = 2.92e-7
+#Q_II = 1.05e-7
+#Q_IV =7.50e-8
 
 #Q_E / Q_I 
 #Q_E2 / Q_II 
@@ -284,7 +280,7 @@ ext_1 = np.multiply(ext1_mM, molar_mass) * 1e-3
 ext_2 = np.multiply(ext2_mM, molar_mass) * 1e-3
 
 # %% [markdown]
-# To compare the simulation results to those of Mun et al., the concentration of every component is averaged over one switching period. This results in a new average every 264s. As there are 5 columns that switch a total of 41 times, this results in 205 total average concentrations for every component. Dividing the total simulation time by the switch time yields the same number of 205 steps for `n_averages`. This is done for the raffinate, extract 1 and extract 2 ports.
+# To compare the simulation results to those of Mun et al., the concentration of every component is averaged over one switching period. This results in a new average every 264s. As there are 5 columns that switch a total of 41 times, this results in 205 total average concentrations for every component. Dividing the total simulation time by the switch time yields the same number of steps for `n_averages`. This is done for the raffinate, extract 1 and extract 2 ports.
 #
 #     np.shape() of concentration arrays during reshaping:
 #     (54121,3)
@@ -313,7 +309,7 @@ ext2_average = (
 # %%
 import matplotlib.pyplot as plt
 
-n_steps = range(0,n_averages)
+n_steps = range(0,205)
 #n_steps = int(len(t)/builder.switch_time)
 #n_steps = n_columns * n_cycles
 

@@ -115,7 +115,7 @@ k_d = [float(x) for x in arr2]
 # %%
 from CADETProcess.processModel import ComponentSystem
 from CADETProcess.processModel import Linear
-from CADETProcess.processModel import Inlet, Outlet, GeneralRateModel
+from CADETProcess.processModel import Inlet, Outlet, LumpedRateModelWithoutPores
 import numpy as np
 
 # Component System
@@ -129,33 +129,37 @@ component_system = ComponentSystem(['A', 'B', 'C'])
 binding_model = Linear(component_system)
 binding_model.is_kinetic = True
 #mass_transfer = [1, 0.5, 0.1]
-binding_model.adsorption_rate = [3.15, 7.40*0.5, 23.0*0.1]  # Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
+binding_model.adsorption_rate = [3.15, 7.40, 23.0]  # Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
 #binding_model.adsorption_rate = k_a
-binding_model.desorption_rate = [1, 0.5, 0.1] # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
+binding_model.desorption_rate = [1, 1, 1] # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
 #binding_model.desorption_rate = k_d
 
 # Column
-column = GeneralRateModel(component_system, name='column')
+
+
+#class CADETProcess.processModel.(total_porosity, _q, length, diameter, axial_dispersion,
+ #                                                           flow_direction, c, name)
+column = LumpedRateModelWithoutPores(component_system, name='column')
 column.binding_model = binding_model
 column.length = 0.150 # L [m]
 column.diameter = 1.0e-2  # d [m]
-column.bed_porosity = 0.80  # ε_c [-]
-column.particle_porosity = 1.0e-8  # ε_p [-] 
+column.total_porosity = 0.80  # ε_c [-]
+#column.particle_porosity = 1.0e-8  # ε_p [-] 
 #Matlab code: opt.porosityParticle    = 0.00000001;   % e_p very small to ensure e_t = e_c  => would be 1.0e-8
-column.particle_radius = 1.50e-5  # r_p [m]
+#column.particle_radius = 1.50e-5  # r_p [m]
 
 #column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]  
-column.film_diffusion = [5.0e-7, 5.0e-7, 5.0e-7]
+#column.film_diffusion = [5.0e-7, 5.0e-7, 5.0e-7]
 #Matlab code: opt.filmDiffusion             = [5.0e-5, 2.5e-5, 5.0e-5];  % K_f   Componente B fits better with 5.0e-5
 
 #column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
-column.pore_diffusion = [1.6e4, 1.6e4, 1.6e4]
+#column.pore_diffusion = [1.6e4, 1.6e4, 1.6e4]
 #Matlab code: opt.diffusionParticle         = [1.6e4, 1.6e4, 1.6e4];  % D_p
 
 
 column.axial_dispersion = 3.81e-10  # D_ax [m² / s  #Matlab code: 3.8148e-10;
-column.discretization.npar = 1  # N_r
-column.discretization.ncol = 40  # N_z
+#column.discretization.npar = 1  # N_r
+#column.discretization.ncol = 40  # N_z
 
 column.solution_recorder.write_solution_bulk = True
 
@@ -393,17 +397,17 @@ ax.set_ylabel("c(g/L)")
 np.shape(y)
 
 # %% [markdown]
-# ```{figure} ./figures/ternary_separation_Mun.png
-# :width: 800px
-# <div style="text-align: center">
-# (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, Operation mode: Standard mode (at 200.99 steps), numerical simulations where the mass-transfer effects were minimized to approach an equilibrium (or ideal) state.
-# <div>
-
-# %% [markdown]
 # ```{figure} ./figures/ternary.png
 # :width: 800px
 # <div style="text-align: center">
 # (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, (a) Standard (at 200.01 steps), (b) Standard (at 200.99 steps), Blue line: component A, red line: component B, green line: component C.; numerical simulations where all the mass-transfer effects were considered in accordance with the information in Table 1. 
+# <div>
+
+# %% [markdown]
+# ```{figure} ./figures/ternary_separation_Mun.png
+# :width: 800px
+# <div style="text-align: center">
+# (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, Operation mode: Standard mode (at 200.99 steps), numerical simulations where the mass-transfer effects were minimized to approach an equilibrium (or ideal) state.
 # <div>
 
 # %%

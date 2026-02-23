@@ -99,64 +99,37 @@
 #     opt.DPFR_dispersion = 2.5e-20;
 #
 
-# %%
-# Transformation of datatypes for adsorption/desorption rates with mass transfer
-import numpy as np
-mass_transfer = [1, 0.5, 0.1]
-arr1 = np.divide([3.15, 7.40, 23.0], mass_transfer)# Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ;  list(np.divide([1, 1, 1], mass_transfer)) 
-arr2 = np.divide([1, 1, 1], mass_transfer) 
-k_a = [float(x) for x in arr1]
-k_d = [float(x) for x in arr2]
-
 # %% [markdown]
-# The following process parameters are taken from Table 1 Case III (He et al.). In variance with He's publication, the feed concentrations `feed.c` (mol/m^3) of all three components are not calculated based on a feed of 1.0 g/cm^3 and the corresponding molar masses, but on 1.0 g/L as stated in the original paper by Mun et al. (Table 1). The numerical values used for the pore diffusion and film diffusion are exchanged in comparison to the statements of He et al.
+# The following process parameters are taken from Table 1 (Mun et al.). The feed concentrations `feed.c` (mol/m^3) of all three components are calculated based on 1.0 g/L. The axial dispersion is assumed to be a typical value (Table 1, He et al.). The mass transfer follows a linear binding model, in which the `adsorption_rate` is given as the product of the `mass-transfer coefficient` and the `Henry constant` for each component. The `desorption_rate` is equal to the mass-transfer coefficient of each component (Equation 9b, 9j, Mun et al.). 
 #
 
 # %%
 from CADETProcess.processModel import ComponentSystem
 from CADETProcess.processModel import Linear
-from CADETProcess.processModel import Inlet, Outlet, GeneralRateModel
+from CADETProcess.processModel import Inlet, Outlet, LumpedRateModelWithoutPores
 import numpy as np
 
 # Component System
 component_system = ComponentSystem(['A', 'B', 'C'])
-#Components at extraction from:     
-#    opt.comp_raf_ID  = 1; % the target component withdrawn from the raffinate ports
-#    opt.comp_ext1_ID = 3; % the target component withdrawn from the extract_1 ports
-#    opt.comp_ext2_ID = 2; % the target component withdrawn from the extract_2 ports
 
 # Binding Model
 binding_model = Linear(component_system)
 binding_model.is_kinetic = True
-#mass_transfer = [1, 0.5, 0.1]
-binding_model.adsorption_rate = [3.15, 7.40*0.5, 23.0*0.1]  # Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
-#binding_model.adsorption_rate = k_a
-binding_model.desorption_rate = [1, 0.5, 0.1] # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
-#binding_model.desorption_rate = k_d
+binding_model.adsorption_rate = [3.15, 7.40*0.5, 23.0*0.1]  # k_a = apkm * H [1/s]
+binding_model.desorption_rate = [1, 0.5, 0.1]  # kd = apkm [1/s]
+
 
 # Column
-column = GeneralRateModel(component_system, name='column')
+#class CADETProcess.processModel.(total_porosity, _q, length, diameter, axial_dispersion,
+ #                                                           flow_direction, c, name)
+column = LumpedRateModelWithoutPores(component_system, name='column')
 column.binding_model = binding_model
 column.length = 0.150 # L [m]
 column.diameter = 1.0e-2  # d [m]
-column.bed_porosity = 0.80  # ε_c [-]
-column.particle_porosity = 1.0e-8  # ε_p [-] 
-#Matlab code: opt.porosityParticle    = 0.00000001;   % e_p very small to ensure e_t = e_c  => would be 1.0e-8
-column.particle_radius = 1.50e-5  # r_p [m]
-
-#column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]  
-column.film_diffusion = [5.0e-7, 5.0e-7, 5.0e-7]
-#Matlab code: opt.filmDiffusion             = [5.0e-5, 2.5e-5, 5.0e-5];  % K_f   Componente B fits better with 5.0e-5
-
-#column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
-column.pore_diffusion = [1.6e4, 1.6e4, 1.6e4]
-#Matlab code: opt.diffusionParticle         = [1.6e4, 1.6e4, 1.6e4];  % D_p
-
-
-column.axial_dispersion = 3.81e-10  # D_ax [m² / s  #Matlab code: 3.8148e-10;
-column.discretization.npar = 1  # N_r
+column.total_porosity = 0.80  # ε_c [-]
+column.axial_dispersion = 3.81e-5  # D_ax [m² / s  #Matlab code: 3.8148e-10;
+#column.discretization.npar = 1  # N_r
 column.discretization.ncol = 40  # N_z
-
 column.solution_recorder.write_solution_bulk = True
 
 eluent = Inlet(component_system, name='eluent')
@@ -172,10 +145,10 @@ feed.c = [4.40, 3.74, 3.98]  # c_in [mol / m^3]
 feed.flow_rate = 1.67e-8  # Q_F [m^3 / s]  Matlab code: flowRate.feed       = 1.6667e-8;      % m^3/s
 
 # %% [markdown]
-# All zones are connected to each other in series `SerialZone`
+# All zones are connected to each other in series `SerialZone`. The flow rates are taken from Table 2 (Mun at al.) and the fractions of the flow going into extract port I `w_e1`, extract port 2 `w_e2` and the raffinate port `w_r` are calculated. 
 # ```
 # zone_I -> extract_1 + zone_II
-# Q_I = Q_E + Q_II 
+# Q_I = Q_E1 + Q_II 
 #
 # zone_II -> extract_2 + zone_III
 # Q_II = Q_E2 + Q_III 
@@ -183,21 +156,21 @@ feed.flow_rate = 1.67e-8  # Q_F [m^3 / s]  Matlab code: flowRate.feed       = 1.
 # zoneIV -> raffinate + zone_V
 # Q_IV = Q_R + Q_V 
 #
-# w_e1 = Q_E / Q_I = 0.6438
-# w_e2 = Q_E2 / Q_II = 0.4419
+# w_e1 = Q_E1 / Q_I = 0.6418
+# w_e2 = Q_E2 / Q_II = 0.443
 # w_r = Q_R / Q_IV = 0.224
 
 # %%
-Q_R = 1.68e-8  # Operating point a, Table 3 Mun et al.
-Q_E = 1.88e-7  # Operating point a, Table 3
-Q_E2 = 4.64e-8  
-Q_I = 2.92e-7
-Q_II = 1.05e-7
-Q_IV =7.50e-8
+Q_R = 1.009  # Operating point a, Table 3 Mun et al.
+Q_E1 = 11.256  # Operating point a, Table 3
+Q_E2 = 2.782  
+Q_I = 17.538
+Q_II = 6.282
+Q_IV = 4.500
 
-#Q_E / Q_I 
-#Q_E2 / Q_II 
-#Q_R / Q_IV 
+Q_E1 / Q_I 
+Q_E2 / Q_II 
+Q_R / Q_IV 
 
 # %%
 extract_1 = Outlet(component_system, name = 'extract_1')
@@ -232,17 +205,17 @@ builder.add_connection(eluent, zone_I)
 
 builder.add_connection(zone_I, extract_1)
 builder.add_connection(zone_I, zone_II)
-w_e1 = 0.6438
+w_e1 = 0.642
 builder.set_output_state(zone_I, [w_e1, 1 - w_e1])
 
 builder.add_connection(zone_II, extract_2)
 builder.add_connection(zone_II, zone_III)
-w_e2 = 0.4419
+w_e2 = 0.443
 builder.set_output_state(zone_II, [w_e2, 1 - w_e2])
 
 builder.add_connection(zone_III, zone_IV)
-builder.add_connection(feed, zone_IV)
 
+builder.add_connection(feed, zone_IV)
 builder.add_connection(zone_IV, raffinate)
 builder.add_connection(zone_IV, zone_V)
 w_r = 0.224
@@ -393,17 +366,17 @@ ax.set_ylabel("c(g/L)")
 np.shape(y)
 
 # %% [markdown]
-# ```{figure} ./figures/ternary_separation_Mun.png
-# :width: 800px
-# <div style="text-align: center">
-# (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, Operation mode: Standard mode (at 200.99 steps), numerical simulations where the mass-transfer effects were minimized to approach an equilibrium (or ideal) state.
-# <div>
-
-# %% [markdown]
 # ```{figure} ./figures/ternary.png
 # :width: 800px
 # <div style="text-align: center">
 # (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, (a) Standard (at 200.01 steps), (b) Standard (at 200.99 steps), Blue line: component A, red line: component B, green line: component C.; numerical simulations where all the mass-transfer effects were considered in accordance with the information in Table 1. 
+# <div>
+
+# %% [markdown]
+# ```{figure} ./figures/ternary_separation_Mun.png
+# :width: 800px
+# <div style="text-align: center">
+# (Fig. 8, Mun et al.) internal concentration profiles of the five-zone SMBs, Operation mode: Standard mode (at 200.99 steps), numerical simulations where the mass-transfer effects were minimized to approach an equilibrium (or ideal) state.
 # <div>
 
 # %%

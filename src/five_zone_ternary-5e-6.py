@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.1
+#       jupytext_version: 1.17.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -129,9 +129,9 @@ component_system = ComponentSystem(['A', 'B', 'C'])
 binding_model = Linear(component_system)
 binding_model.is_kinetic = True
 #mass_transfer = [1, 0.5, 0.1]
-binding_model.adsorption_rate = [3.15, 7.40*0.5, 23.0*0.1]  # Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
+binding_model.adsorption_rate = [3.15, 7.40, 23.0]  # Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
 #binding_model.adsorption_rate = k_a
-binding_model.desorption_rate = [1, 0.5, 0.1] # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
+binding_model.desorption_rate = [1, 1, 1] # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
 #binding_model.desorption_rate = k_d
 
 # Column

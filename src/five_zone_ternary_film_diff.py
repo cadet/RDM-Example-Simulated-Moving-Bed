@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.1
+#       jupytext_version: 1.17.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -129,9 +129,9 @@ component_system = ComponentSystem(['A', 'B', 'C'])
 binding_model = Linear(component_system)
 binding_model.is_kinetic = True
 #mass_transfer = [1, 0.5, 0.1]
-binding_model.adsorption_rate = [3.15, 7.40*0.5, 23.0*0.1]  # Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
+binding_model.adsorption_rate = [3.15, 7.40, 23.0]  # Henry_1 = 3.15; Henry_2 = 7.40, Henry_3 = 23.0, second ternary separation system (Mun et al.) ; 
 #binding_model.adsorption_rate = k_a
-binding_model.desorption_rate = [1, 0.5, 0.1] # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
+binding_model.desorption_rate = [1, 1, 1] # k_kin = Mass-transfer coefficient (ap km ), 1/s, kd = 1/k_kin
 #binding_model.desorption_rate = k_d
 
 # Column
@@ -145,7 +145,7 @@ column.particle_porosity = 1.0e-8  # ε_p [-]
 column.particle_radius = 1.50e-5  # r_p [m]
 
 #column.film_diffusion = component_system.n_comp * [1.6e4]  # k_f [m / s]  
-column.film_diffusion = [5.0e-7, 5.0e-7, 5.0e-7]
+column.film_diffusion = [5.0e-5, 5.0e-5, 5.0e-5]
 #Matlab code: opt.filmDiffusion             = [5.0e-5, 2.5e-5, 5.0e-5];  % K_f   Componente B fits better with 5.0e-5
 
 #column.pore_diffusion = component_system.n_comp * [5e-5]  # D_p [m² / s]
@@ -391,6 +391,7 @@ for position, ax in enumerate(axs):
         column_counter = 0
 ax.set_ylabel("c(g/L)")        
 np.shape(y)
+before_switch
 
 # %% [markdown]
 # ```{figure} ./figures/ternary_separation_Mun.png
