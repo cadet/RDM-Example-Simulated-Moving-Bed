@@ -18,48 +18,58 @@
 # # Ternary Separation
 
 # %% [markdown]
-# The following case study examines the separation of the three components 2’-deoxycytidine `A`, 2’-deoxyguanosine `B` and 2’-deoxyadenosine `C`. A standard five-zone SMB system with two extract ports and without partial-feeding or partial-closing is assumed.
+# The following case study examines the separation of the three components 2’-deoxycytidine `A`, 2’-deoxyguanosine `B` and 2’-deoxyadenosine `C`. A standard **five-zone SMB** system with **two extract ports** and without partial-feeding or partial-closing is assumed.
 #
-# This experiment was originally simulated and published by S. Mun in "Improving performance of a five-zone simulated moving bed chromatography for ternary separation by simultaneous use of partial-feeding and partial-closing of the product port in charge of collecting the intermediate-affinity solute molecules" (Sungyong Mun, Journal of Chromatography A 2011;  1218(44):8060-8074) <br> https://doi.org/10.1016/j.chroma.2011.09.015.
+# This experiment was originally simulated and published by S. Mun in **Improving performance of a five-zone simulated moving bed chromatography for ternary separation by simultaneous use of partial-feeding and partial-closing of the product port in charge of collecting the intermediate-affinity solute molecules** (Sungyong Mun, Journal of Chromatography A 2011;  1218(44):8060-8074) <br> https://doi.org/10.1016/j.chroma.2011.09.015.
 #
 
 # %% [markdown]
 # ```{figure} ./figures/case_study3.jpg
 # :width: 600px
-# <div style="text-align: center">
-# (Fig. 4, He et al.) Integrated five-zone SMB scheme with two extract ports
-# <div>
+# :align: center
+#
+# Integrated five-zone SMB scheme with two extract ports
+# [Fig. 4, He et al.](https://www.sciencedirect.com/science/article/pii/S0098135417304520#fig0004)
 
 # %% [markdown]
-# Ternary separation with a five zone system is particularly effective when the target component is present in much higher abundance than the more strongly retained component. The Henry coefficients of the three components are made sure to be sufficiently different to assure their separation.
-
-# %% [markdown]
-# The following process parameters are taken from Table 1 (Mun). The feed concentrations `feed.c` (mol/m^3) are calculated based on the respective `molar_mass` for each component and a feed of 1 g/L. The axial dispersion is not explicitly given in the paper. A small numerical value is chosen as to not inhibit the elution, the effect of the axial dispersion is negligible. <br>The mass transfer follows a linear binding model, in which the `adsorption_rate` is given as the product of the `mass-transfer coefficient` and the `Henry constant` for each component. The `desorption_rate` is equal to the mass-transfer coefficient of each component (Equation 9b, 9j; Mun). 
+# The following process parameters are taken from [Table 1](https://www.sciencedirect.com/science/article/pii/S002196731101363X?via%3Dihub#tbl0005). The feed concentrations `feed.c` (mol/m^3) are calculated based on the respective `molar_mass` for each component and a feed of 1 g/L. The `axial dispersion` is not explicitly given in the paper. A small numerical value is chosen as to not inhibit the elution, the effect of the axial dispersion is negligible in this case. <br>The mass transfer follows a **linear binding model**, in which the `adsorption_rate` is given as the product of the `mass-transfer coefficient` and the `Henry constant` for each component. The Henry coefficients of the three components are made sure to be sufficiently different to assure their separation [4. Results and discussion](https://www.sciencedirect.com/science/article/pii/S002196731101363X?via%3Dihub#sec0040). The `desorption_rate` is equal to the mass-transfer coefficient of each component [Equation 9b, 9j](https://www.sciencedirect.com/science/article/pii/S002196731101363X?via%3Dihub#sec0035). 
 #
 
+# %% [markdown]
+# ## Setup
+
 # %%
+import numpy as np
 from CADETProcess.processModel import ComponentSystem
 from CADETProcess.processModel import Linear
 from CADETProcess.processModel import Inlet, Outlet, LumpedRateModelWithoutPores
-import numpy as np
 
-# Component System
+# %% [markdown]
+# ### Component System
+
+# %%
 component_system = ComponentSystem(['A', 'B', 'C'])
 
-# Binding Model
+# %% [markdown]
+# ### Binding Model
+
+# %%
 binding_model = Linear(component_system)
 binding_model.is_kinetic = True
 binding_model.adsorption_rate = [3.15, 7.40*0.5, 23.0*0.1]  # k_a = apkm * H [1/s]
 binding_model.desorption_rate = [1, 0.5, 0.1]  # k_d = apkm [1/s]
 
-# Column
+# %% [markdown]
+# ### Unit operations
+
+# %%
+# Transport Model
 column = LumpedRateModelWithoutPores(component_system, name='column')
 column.binding_model = binding_model
 column.length = 0.150  # L_c [m]
 column.diameter = 1.0e-2  # d_c [m]
 column.total_porosity = 0.80  # ε [-]
 column.axial_dispersion = 1e-7  # E_b [m² / s]
-#column.discretization.npar = 1  # N_r
 column.discretization.ncol = 40  # N_z
 column.solution_recorder.write_solution_bulk = True
 
@@ -68,12 +78,13 @@ eluent.c = [0, 0, 0]  # c_in_D [mol / m^3]
 eluent.flow_rate = 1.908e-7  # Q_des [m^3 / s] operating point c
 
 feed = Inlet(component_system, name='feed')
-feed.c = [4.40, 3.74, 3.98]  # c_in [mol / m^3] 
-# Muns paper c + Matlab code M = [4.401079144606257, 3.74195479718605, 3.9802275034357324]
-feed.flow_rate = 1.67e-8  # Q_feed [m^3 / s] 
+feed.c = [4.40, 3.74, 3.98]  # c_in [mol / m^3]
+feed.flow_rate = 1.67e-8  # Q_feed [m^3 / s]
 
 # %% [markdown]
-# All zones are connected to each other in series `SerialZone`. The flow rates are taken from Table 3, Point c (Mun) and the fractions of the flow going into extract port I `w_e1`, extract port 2 `w_e2` and the raffinate port `w_r` are calculated. 
+# ### SMB Flow Sheet
+#
+# All zones are connected to each other in series. The zones are set up using the `SerialZone` class. The flow rates of each zone are taken from [Table 3, Point c](https://www.sciencedirect.com/science/article/pii/S002196731101363X?via%3Dihub#tbl0015) and the fractions of the flow going into extract port I `w_e1`, extract port 2 `w_e2` and the raffinate port `w_r` are calculated. Using the `CarouselBuilder` all connections of the zones are set up to resemble the [five-zone SMB scheme](https://www.sciencedirect.com/science/article/pii/S002196731101363X?via%3Dihub#fig0005).
 # ```
 # zone_I -> extract_1 + zone_II
 # Q_I = Q_E1 + Q_II 
@@ -87,18 +98,6 @@ feed.flow_rate = 1.67e-8  # Q_feed [m^3 / s]
 # w_e1 = Q_E1 / Q_I = 0.595
 # w_e2 = Q_E2 / Q_II = 0.395
 # w_r = Q_R / Q_IV = 0.368
-
-# %%
-Q_R = 1.655  # Operating point c, Table 3 Mun et al.
-Q_E1 = 8.509  # Operating point c, Table 3
-Q_E2 = 2.281  
-Q_I = 14.290
-Q_II = 5.781
-Q_IV = 4.500
-
-Q_E1 / Q_I 
-Q_E2 / Q_II 
-#Q_R / Q_IV 
 
 # %%
 extract_1 = Outlet(component_system, name = 'extract_1')
@@ -155,10 +154,13 @@ builder.switch_time = 324
 
 process = builder.build_process()
 
+# %% [markdown]
+# ### Process
+
 # %%
 from CADETProcess.simulator import Cadet
 process_simulator = Cadet()
-process_simulator.n_cycles = 41  # 200.99 switch times -> 40.198 cycles for 5 switches per cycle
+process_simulator.n_cycles = 41 
 process_simulator.use_dll = True
 process_simulator.time_integrator_parameters.abstol = 1e-10
 process_simulator.time_integrator_parameters.reltol = 1e-6  
@@ -167,21 +169,28 @@ process_simulator.time_integrator_parameters.max_step_size = 5e6
 
 simulation_results = process_simulator.simulate(process)
 
+# %% [markdown]
+# ## Results
+
+# %% [markdown]
+# The process above simulates the SMB during 41 cycles. There are five switching times for every cycle, one for each column within the system. CADET-Process generates the concentrations in the `simulation_results` in SI-units (mM) by default. To compare the results to the publication, the concentrations are converted to g/L. 
+
 # %%
-import numpy as np
 raff_mM = simulation_results.solution.raffinate.inlet.solution
 ext1_mM = simulation_results.solution.extract_1.inlet.solution
 ext2_mM = simulation_results.solution.extract_2.inlet.solution
 t = simulation_results.time_complete
 
-# Transformation from mM to g/L
+# Conversion from mM to g/L
 molar_mass = [227.22, 267.24, 251.24]  
 raff = np.multiply(raff_mM, molar_mass) * 1e-3
 ext_1 = np.multiply(ext1_mM, molar_mass) * 1e-3
 ext_2 = np.multiply(ext2_mM, molar_mass) * 1e-3
 
 # %% [markdown]
-# To compare the simulation results to those of Mun, the concentration of every component is averaged over one switching period. This results in a new average every 324s. As there are 5 columns that switch a total of 41 times, this results in 205 total average concentrations for every component. Dividing the total simulation time by the switch time yields the same number of 205 steps for `n_averages`. The averaging is done for the raffinate, extract 1 and extract 2 ports. The following plot reproduces Fig. 11 a,b,c (Mun). 
+# ### Concentrations at the outlet ports
+#
+# To compare the simulation results to those of Mun ([Fig. 11 a, b, c](https://www.sciencedirect.com/science/article/pii/S002196731101363X?via%3Dihub#fig0055)), the concentration of every component is averaged over one switching period. This results in a new average every 324s. As there are 5 columns that switch a total of 41 times, this results in 205 total average concentrations for every component. Dividing the total simulation time by the switch time yields the same number of 205 steps for `n_averages`. The averaging is done for the **raffinate**, **extract 1** and **extract 2** ports.
 
 # %%
 n_averages = int(len(raff) // builder.switch_time)  
@@ -206,8 +215,6 @@ ext2_average = (
 import matplotlib.pyplot as plt
 
 n_steps = range(0,n_averages)
-#n_steps = int(len(t)/builder.switch_time)
-#n_steps = n_columns * n_cycles
 
 fig, axs = plt.subplots(2, 2, figsize=(20, 17))
 ax1 = axs[0, 0]  # Raff
@@ -234,7 +241,9 @@ ax3.set_ylim(0, 0.8)
 
 
 # %% [markdown]
-# The axial concentration profiles of each component in every zone of the SMB can be plotted for a desired time point within the seperation process. The following graph depicts the axial concentrations after the CSS is reached at a point before a switching time (200.99 steps) and after a switch (200.01 steps). This can be archieved by using the function already implemented in the `CarouselSolutionBulk` class (see four_zone_binary). To compare the results to Fig. 10 a,b of Mun's study, the concentrations are converted from mM to g/L and plotted manually in the following code.
+# ### Axial concentrations
+#
+# The internal concentration profiles of each component in every zone of the SMB can be plotted for a desired time point within the seperation process. The following graph depicts the axial concentrations after the CSS is reached at a point **before a switching time** (200.99 steps) and **after a switch** (200.01 steps). This can be archieved by using the function already implemented in the `CarouselSolutionBulk` class (see {ref}`four-zone-binary). To compare the results to [Fig. 10 a,b](https://www.sciencedirect.com/science/article/pii/S002196731101363X?via%3Dihub#fig0050), the concentrations are converted from mM to g/L and plotted manually in the following code.
 
 # %%
 # Axial concentrations
@@ -277,8 +286,7 @@ for t in plotting_time:
     
         zone = axial_conc.builder.zones[zone_counter]
         ax.set_title(f'{zone.name}')
-
+        plt.tight_layout()
+        
         zone_counter += 1
         column_counter = 0
-
-# %%
