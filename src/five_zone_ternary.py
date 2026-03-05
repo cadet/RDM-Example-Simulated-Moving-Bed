@@ -244,7 +244,7 @@ plt.show()
 # %% [markdown]
 # ### Axial concentrations
 #
-# The internal concentration profiles of each component in every zone of the SMB can be plotted for a desired time point within the seperation process. The following graph depicts the axial concentrations after the CSS is reached at a point **before a switching time** (200.99 steps) and **after a switch** (200.01 steps). This can be archieved by using the `axial_conc.plot_at_time` function already implemented in the `CarouselSolutionBulk` class (see {ref}`four-zone-binary). To compare the results to [Fig. 10 a,b](https://www.sciencedirect.com/science/article/pii/S002196731101363X?via%3Dihub#fig0050), the concentrations are converted from mM to g/L and plotted manually in the following code.
+# The internal concentration profiles of each component in every zone of the SMB can be plotted for a desired time point within the seperation process. The following graph depicts the axial concentrations after the CSS is reached at a point **before a switching time** (200.99 steps) and **after a switch** (200.01 steps). This can be archieved by using the `axial_conc.plot_at_time` function already implemented in the `CarouselSolutionBulk` class (see {ref}`four_zone_binary`). To compare the results to [Fig. 10 a,b](https://www.sciencedirect.com/science/article/pii/S002196731101363X?via%3Dihub#fig0050), the concentrations are converted from mM to g/L and plotted manually in the following code.
 
 # %%
 # Axial concentrations

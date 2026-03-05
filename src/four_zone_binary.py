@@ -73,8 +73,8 @@ column = GeneralRateModel(component_system, name='column')
 column.binding_model = binding_model
 column.length = 0.536  # L [m]
 column.diameter = 2.6e-2  # d [m]
-column.bed_porosity = 0.38  # ε_c [-] 
-column.particle_porosity = 1.0e-5  # ε_p [-] 
+column.bed_porosity = 0.38  # ε_c [-]
+column.particle_porosity = 1.0e-5  # ε_p [-]
 column.particle_radius = 1.63e-3  # r_p [m]
 column.film_diffusion = component_system.n_comp * [5e-5]  # k_f [m / s]
 column.pore_diffusion = component_system.n_comp * [1.6e4]  # D_p [m² / s]
@@ -83,12 +83,12 @@ column.discretization.npar = 1  # N_r
 column.discretization.ncol = 40  # N_z
 column.solution_recorder.write_solution_bulk = True
 
-eluent = Inlet(component_system, name='eluent') #Name in paper = "desorbent"
+eluent = Inlet(component_system, name='eluent')
 eluent.c = [0, 0]  # c_in_D [mol / m^3]
-eluent.flow_rate = 4.14e-8  # Q_D [m^3 / s] 
+eluent.flow_rate = 4.14e-8  # Q_D [m^3 / s]
 
 feed = Inlet(component_system, name='feed')
-feed.c = [2.78e3, 2.78e3]  # c_in [mol / m^3] => He Matlab, Klatt, NOT HE PAPER
+feed.c = [2.78e3, 2.78e3]  # c_in [mol / m^3]
 feed.flow_rate = 2.0e-8  # Q_F [m^3 / s]
 
 # %% [markdown]
@@ -161,7 +161,6 @@ process = builder.build_process()
 # %%
 from CADETProcess.simulator import Cadet
 process_simulator = Cadet()
-#process_simulator.evaluate_stationarity = True
 process_simulator.n_cycles = 13
 process_simulator.use_dll = True
 
